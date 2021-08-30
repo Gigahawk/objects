@@ -1,2 +1,5 @@
 .vscode
 **.stl
+**.amf
+**.step
+**__pycache__
