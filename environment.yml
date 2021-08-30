@@ -1,0 +1,11 @@
+name: cadquery
+
+channels:
+  - cadquery
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.9
+  - cadquery=master
+  - cq-editor=master
