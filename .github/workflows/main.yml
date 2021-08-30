@@ -1,4 +1,4 @@
-name: test
+name: main
 
 on: [push]
 
@@ -18,24 +18,11 @@ jobs:
           environment-file: environment_ci.yml
           activate-environment: cadquery_ci
 
-      - run: conda --version
-      - run: python --version
-      - run: python export.py
+      - name: Build objects
+        run: python export.py
 
-
-#      - name: Check conda version
-#        uses: matthewrmshin/conda-action@v1.1
-#        with:
-#          args: conda --version
-#
-#      - name: Update conda environment
-#        uses: matthewrmshin/conda-action@v1.1
-#        with:
-#          args: conda env update -f ./environment_ci.yml
-#
-#      - name: Build objects
-#        uses: matthewrmshin/conda-action@v1.1
-#        with:
-#          args: python export.py
-#
-#
+      - name: Archive objects
+        uses: actions/upload-artifact@v2
+        with:
+          name: object-bin
+          path: export
