@@ -1,0 +1,28 @@
+name: main
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Anaconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
+        with:
+          miniforge-version: latest
+          environment-file: environment_ci.yml
+          activate-environment: cadquery_ci
+
+      - name: Build objects
+        run: python export.py
+
+      - name: Archive objects
+        uses: actions/upload-artifact@v2
+        with:
+          name: object-bin
+          path: export
