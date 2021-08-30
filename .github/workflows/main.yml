@@ -14,7 +14,8 @@ jobs:
       - name: Setup Anaconda
         uses: conda-incubator/setup-miniconda@v2.1.1
         with:
-          miniforge-version: latest
+          # miniforge may be required if running with the medium image from act
+          # miniforge-version: latest
           environment-file: environment_ci.yml
           activate-environment: cadquery_ci
 
@@ -22,6 +23,8 @@ jobs:
         run: python export.py
 
       - name: Archive objects
+        # Skip archive if running on act
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v2
         with:
           name: object-bin
