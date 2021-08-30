@@ -1,7 +1,15 @@
+"""Canadian Loonie substitute intended for use in shopping carts"""
+
 import cadquery as cq
 from math import sin, cos, floor, pi
 
 def realeaux(self, w, n):
+    """Generate a 2D regular realeaux polygon
+
+    Args:
+        w (float): width of the realeaux
+        n (int): number of vertices of the realeaux
+    """
     rl = cq.Workplane()
     s = 2*w*sin(pi/(2*n))
 
