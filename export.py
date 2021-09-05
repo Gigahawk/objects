@@ -30,8 +30,12 @@ def main():
 
                 for t in export_types:
                     export_path = Path("export") / path.with_suffix(t)
+                    # Ensure export dir exists prior to writing to it
+                    export_dir = export_path.parent
+                    os.makedirs(export_dir, exist_ok=True)
                     print(f"Exporting to {export_path}")
                     exporters.export(result, str(export_path))
 
 if __name__ == "__main__":
     main()
+
