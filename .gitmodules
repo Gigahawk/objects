@@ -1,0 +1,3 @@
+[submodule "pipod_mech"]
+	path = pipod_mech
+	url = git@github.com:Gigahawk/pipod_mech.git
