@@ -10,6 +10,8 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
 
       - name: Setup Anaconda
         uses: conda-incubator/setup-miniconda@v2.1.1
