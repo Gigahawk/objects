@@ -3,12 +3,12 @@
 import cadquery as cq
 import numpy as np
 
-nom_cavity_dia = 48.0
-nom_shaft_dia = 40.0
+nom_cavity_dia = 49.8
+nom_shaft_dia = 35.5
 nom_shaft_circ = np.pi*nom_shaft_dia
 cavity_depth = 20
 
-gap = 1
+gap = 2
 cavity_dia = nom_cavity_dia + gap
 shaft_dia = nom_shaft_dia + gap
 shaft_circ = np.pi*shaft_dia
