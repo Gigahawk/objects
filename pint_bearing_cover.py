@@ -4,9 +4,9 @@ import cadquery as cq
 import numpy as np
 
 nom_cavity_dia = 49.8
-nom_shaft_dia = 35.5
+nom_shaft_dia = 35.3
 nom_shaft_circ = np.pi*nom_shaft_dia
-cavity_depth = 20
+cavity_depth = 10
 
 gap = 2
 cavity_dia = nom_cavity_dia + gap
@@ -24,6 +24,6 @@ cutout_points = [
 result = (
     cq.Workplane("XY").tag("base_plane")
     .circle(cavity_dia/2).circle(shaft_dia/2)
-    .extrude(10)
+    .extrude(cavity_depth)
     .polyline(cutout_points).close().cutThruAll()
 )
