@@ -1,11 +1,15 @@
 import cadquery as cq
 from math import sin, cos, pi
 
+# Use different cylinder diameters for testing
 cyl_diameters = sorted(
     [125, 100, 75, 50],
     reverse=True)
 
-channel_diameter  = 2
+# Insulation diameter is approx 2mm
+channel_diameter  = 2.5
+
+# Thickness of each cylinder
 thickness = channel_diameter*3
 total_height = thickness*len(cyl_diameters)
 
@@ -17,9 +21,9 @@ bolt_head_width = 24.5
 _side_length = (bolt_head_width/2)/sin(pi/3)
 _inscribed_width = _side_length*(1 + 2*cos(pi/3))
 
+# Drive shaft dimensions
 shaft_diameter = 16.5
 shaft_length = 10
-
 
 
 result = cq.Workplane("XY").tag("base_plane")
