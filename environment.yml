@@ -9,3 +9,6 @@ dependencies:
   - python=3.9
   - cadquery=master
   - cq-editor=master
+  - pip
+  - pip:
+    - git+https://github.com/gumyr/cq_warehouse.git#egg=cq_warehouse
