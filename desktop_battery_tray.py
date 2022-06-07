@@ -4,7 +4,7 @@ import cadquery as cq
 
 width = 65
 height = 60
-thickness = 15
+thickness = 12
 chamfer = 3
 
 depth_9v = 17.0
