@@ -14,7 +14,7 @@ height_9v = 48.5
 diameter_aa = 14.5
 length_aa = 50.5
 
-pocket_gap = 2
+pocket_gap = 4
 pocket_edge_to_edge = width_9v + pocket_gap + diameter_aa
 offset_9v = (height - pocket_edge_to_edge)/2
 # For some reason AA cut plane origin is at offset_9v already
