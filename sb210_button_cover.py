@@ -7,10 +7,10 @@ bulk_height = 11
 bulk_thickness = 3
 
 button_depth = 2.6
-button_width = 6
+button_width = 6.2
 button_distance = 13.75
 
-fillet = 3
+fillet = 2
 
 result = (
     cq.Workplane("XY").tag("base_plane")
