@@ -5,5 +5,4 @@ channels:
 
 dependencies:
   - python=3.9
-  - vtk=9.0.1
   - cadquery=master
