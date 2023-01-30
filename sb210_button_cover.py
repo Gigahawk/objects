@@ -7,10 +7,10 @@ bulk_height = 11
 bulk_thickness = 3
 
 button_depth = 2.6
-button_width = 6.2
+button_width = 6.1
 button_distance = 13.75
-button_chamfer1 = 0.2
-button_chamfer2 = 1.0
+button_chamfer_width = 0.2
+button_chamfer_depth = 0.5
 
 fillet = 2
 
@@ -25,5 +25,5 @@ result = (
     .cutBlind(-button_depth)
     # Not sure why you can't do `and not()`
     .edges(">Z and #Z").edges("not(>Y or >X or <Y or <X)")
-    .chamfer(button_chamfer1, button_chamfer2)
+    .chamfer(button_chamfer_width, button_chamfer_depth)
 )
