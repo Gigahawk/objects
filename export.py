@@ -5,12 +5,30 @@ from importlib import import_module
 
 import cadquery as cq
 from cadquery import exporters
+from build123d import Unit
 
 export_types = [
     ".stl",
     ".step",
-    ".amf",
+    ".3mf",
 ]
+
+def export_build123d(result, path):
+    exporter_name = f"export_{path.suffix[1:]}"
+    default_args = {
+        "export_3mf": {
+            "tolerance": 0.001,
+            "angular_tolerance": 0.1,
+            "unit": Unit.MILLIMETER
+        }
+    }
+    try:
+        func = getattr(result, exporter_name)
+        args = default_args.get(exporter_name, {})
+        func(str(path), **args)
+    except AttributeError:
+        print(
+            f"Error: {result} doesn't have an exporter called {exporter_name}")
 
 
 def main():
@@ -50,8 +68,12 @@ def main():
                         # Ensure export dir exists prior to writing to it
                         export_dir = export_path.parent
                         os.makedirs(export_dir, exist_ok=True)
-                        print(f"Exporting to {export_path}")
-                        exporters.export(result, str(export_path))
+                        if "cadquery" in str(type(result)):
+                            print(f"Exporting CadQuery part to {export_path}")
+                            exporters.export(result, str(export_path))
+                        else:
+                            print(f"Exporting build123d part to {export_path}")
+                            export_build123d(result, export_path)
 
 if __name__ == "__main__":
     main()
