@@ -6,6 +6,10 @@ channels:
   - defaults
 
 dependencies:
-  - python=3.9
+  - python=3.10
+  - pip
   - cadquery=master
   - cq-editor=master
+  - pip:
+    - git+https://github.com/gumyr/cq_warehouse.git#egg=cq_warehouse
+
