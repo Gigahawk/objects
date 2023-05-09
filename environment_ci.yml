@@ -9,3 +9,4 @@ dependencies:
   - cadquery=master
   - pip:
     - git+https://github.com/gumyr/cq_warehouse.git#egg=cq_warehouse
+    - git+https://github.com/gumyr/build123d
