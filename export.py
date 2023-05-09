@@ -3,6 +3,7 @@ import os
 import shutil
 from importlib import import_module
 
+import cadquery as cq
 from cadquery import exporters
 
 export_types = [
@@ -44,6 +45,8 @@ def main():
                                 .with_suffix(t)
                             )
                         )
+                        if isinstance(result, cq.Assembly):
+                            result = result.toCompound()
                         # Ensure export dir exists prior to writing to it
                         export_dir = export_path.parent
                         os.makedirs(export_dir, exist_ok=True)
