@@ -6,7 +6,7 @@ import cadquery as cq
 thickness = 13
 width = 20
 height = 120
-length = 145
+length = 165
 fillet = 20
 taper_angle = 15
 taper_fillet = 5
