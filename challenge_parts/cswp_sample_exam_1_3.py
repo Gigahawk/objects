@@ -133,26 +133,16 @@ def build(A, B, C, D, E, Fr, Fd, FR):
         fillet(counterbore_edge, radius=counterbore_fillet_radius)
 
         # Offset pocket
-        # Select all edges within a C by C square
-        pocket_edges = (
-            part.edges()
-            .filter_by(Axis.Z, reverse=True)
-            .filter_by_position(Axis.X, 0, C - 0.1)
-            .filter_by_position(Axis.Y, 0, C - 0.1)
-        )
-        # Remove the edges from the counterbore
-        unwanted_pocket_edges = (
-            pocket_edges
-            .filter_by_position(Axis.X, 0, counterbore_platform_width - counterbore_fillet_radius)
-            .filter_by_position(Axis.Y, 0, counterbore_platform_width - counterbore_fillet_radius)
-        )
-        pocket_edges -= unwanted_pocket_edges
-        # Select only edges on top face of the main plate
-        pocket_edges = ShapeList([
-            e for e in pocket_edges if e.center().Z == plate_thickness
+        main_faces = part.faces().filter_by(Axis.Z)
+        main_faces = ShapeList([
+            f for f in main_faces if f.center().Z == plate_thickness
         ])
+        # 0 index happens to be the counterbore hole in this case.
+        # A more robust way may be to filter faces by size to prevent the counterbore
+        # from being a part of main_faces
+        pocket_face = main_faces.sort_by(Axis.X)[1]
         with BuildSketch(main_workplane):
-            make_face(pocket_edges)
+            make_face(pocket_face)
             offset(amount=pocket_offset, mode=Mode.REPLACE)
         extrude(amount=pocket_depth, mode=Mode.SUBTRACT)
         # Pocket fillets

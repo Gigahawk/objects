@@ -99,51 +99,23 @@ def build(A, B, C, D, E):
         extrude(amount=-cylinder_cut_height, mode=Mode.SUBTRACT)
 
         # Offset pockets
-        # Select all edges on the plate
-        plate_edges = (
-            part.edges()
-            .filter_by(Axis.Z, reverse=True)
-        )
-        plate_edges = ShapeList([
-            e for e in plate_edges if e.center().Z == plate_thickness
-        ])
-        # Select all edges within a C by C square
-        pocket1_edges = (
-            plate_edges
-            .filter_by_position(Axis.X, 0, C - 0.1)
-            .filter_by_position(Axis.Y, 0, C - 0.1)
-        )
-        # Remove unwanted outer arc
-        unwanted_arc = (
-            pocket1_edges
-            .filter_by(GeomType.CIRCLE)
-        )
-        unwanted_arc = ShapeList([e for e in unwanted_arc if e.radius == wall_inner_rad])
-
-        pocket1_edges -= unwanted_arc
-        pocket2_edges = plate_edges - pocket1_edges
-
-        # Pocket 1
+        main_faces = part.faces().filter_by(Axis.Z)
+        main_faces = ShapeList([
+            f for f in main_faces if f.center().Z == plate_thickness
+        ]).sort_by(Axis.X)
+        pocket1_face = main_faces[0]
+        pocket2_face = main_faces[1]
         with BuildSketch(main_workplane):
-            make_face(pocket1_edges)
+            make_face(pocket1_face)
             offset(amount=pocket_offset, mode=Mode.REPLACE)
-        extrude(amount=pocket_depth, mode=Mode.SUBTRACT)
-        # Pocket 1 fillets
-        pocket_fillet_edges = (
-            part.edges(Select.LAST).filter_by(Axis.Z)
-        )
-        fillet(objects=pocket_fillet_edges, radius=pocket_fillet_radius)
-
-        # Pocket 2
         with BuildSketch(main_workplane):
-            make_face(pocket2_edges)
+            make_face(pocket2_face)
             with Locations((A, B)):
                 Rectangle(
                     A - wall_straight_length, B - wall_straight_length,
                     align=Align.MAX, mode=Mode.INTERSECT)
             offset(amount=pocket_offset, mode=Mode.REPLACE)
         extrude(amount=pocket_depth, mode=Mode.SUBTRACT)
-        # Pocket2 fillets
         pocket_fillet_edges = (
             part.edges(Select.LAST).filter_by(Axis.Z)
         )
