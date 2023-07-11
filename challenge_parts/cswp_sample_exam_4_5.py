@@ -130,9 +130,9 @@ def build(A, B, C, D, E):
         fillet(outer_edges, radius=outer_fillet_radius)
     return part
 
-results = { name: build(**params) for name, params in inputs.items() }
-for name, result in results.items():
-    mass = result.part.volume*density
+results = { name: build(**params).part for name, params in inputs.items() }
+for name, rslt in results.items():
+    mass = rslt.volume*density
     logging.critical(f"{name} mass: = {mass}")
 
 if "show_object" in locals():
