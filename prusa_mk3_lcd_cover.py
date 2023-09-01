@@ -145,7 +145,7 @@ result -= (
     Location((-67, 51, 0.6), (180, 0, 0)) 
     * extrude(
         Text(
-            "ORIGINAL", font_size=7*text_scale_constant, font_style=FontStyle.BOLD, font="Helvetica", 
+            "ORIGINAL", font_size=7*text_scale_constant, font_style=FontStyle.BOLD, font="Liberation Sans", 
             # (openscad's center=true doesn't seem to do anything for text, 
             # the locations specified in the original code are for minimum alignment)
             align=Align.MIN), 
@@ -156,7 +156,7 @@ result -= (
     Location((-18, 51, 0.6), (180, 0, 0)) 
     * extrude(
         Text(
-            "PRUSA", font_size=11*text_scale_constant, font_style=FontStyle.BOLD, font="Helvetica", 
+            "PRUSA", font_size=11*text_scale_constant, font_style=FontStyle.BOLD, font="Liberation Sans", 
             align=Align.MIN), 
         amount=2
     )
@@ -194,7 +194,7 @@ result -= (
     Location((-73, 15, 4), (0, 0, 90))  * Location((0, 0, 0), (90, 0, 0))
     * extrude(
         Text(
-            "R7", font_size=7*text_scale_constant, font_style=FontStyle.BOLD, font="Helvetica", 
+            "R7", font_size=7*text_scale_constant, font_style=FontStyle.BOLD, font="Liberation Sans", 
             align=Align.MIN), 
         amount=2
     )
