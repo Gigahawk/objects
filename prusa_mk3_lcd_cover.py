@@ -28,6 +28,8 @@ class RegularPrism(BasePartObject):
 # Main body
 main_body = Location((-77, -4.5, 0)) * cube([155, 59.8, 2])
 main_body += Location((-77, -4.5, 0), (35, 0, 0)) * cube([155, 3, 20.08])
+# HACK: add extra padding to fix weird geometry issue on front corner
+main_body += Location((-77, -4.6, -0.1) ,(35, 0, 0)) * cube([155, 3, 20.08])
 main_body += Location((-77, -3.5 , -1), (35, 0, 0)) * cube([7 , 5 , 15])
 main_body += Location((71, -3.5 , -1),  (35, 0, 0)) * cube([7 , 5 , 15])
 main_body += Location((-77, -15.2 , 14.2)) * cube([155 , 3.1 , 11.8])
