@@ -19,7 +19,7 @@ def export_build123d(result, path):
         "export_3mf": {
             "tolerance": 0.001,
             "angular_tolerance": 0.1,
-            "unit": Unit.MILLIMETER
+            "unit": Unit.MM
         }
     }
     try:
