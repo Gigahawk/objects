@@ -1,6 +1,7 @@
 .vscode
 **.stl
 **.amf
+**.3mf
 **.step
 **__pycache__
 export
