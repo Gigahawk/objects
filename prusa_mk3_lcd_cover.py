@@ -93,7 +93,7 @@ base_result += Location((62.5, 37.3, 0)) * cylinder(h=7.2, r1=3.5)
 
 # Left side
 base_result += Location((-77, -14.7, 0)) * cube([1.5, 70.7, 26])
-base_result += Location((-76.5, -15, 0)) * cube([4, 70, 14.6])
+base_result += Location((-76.5, -15, 0)) * cube([4, 70, 14.5])
 
 # Right side
 base_result += Location((76.5, -14.7, 0)) * cube([1.5, 70.7, 26])
