@@ -12,6 +12,7 @@ export_types = [
     ".stl",
     ".step",
     ".3mf",
+    ".brep",
 ]
 
 # Monkeypatch Mesher.add_shape to not throw errors
@@ -115,6 +116,8 @@ def export_build123d(result, path):
     path = str(path)
     if export_type == ".step":
         result.export_step(path)
+    if export_type == ".brep":
+        result.export_brep(path)
     elif export_type in [".stl", ".3mf"]:
         exporter = Mesher()
         exporter.add_shape(result)
@@ -122,6 +125,13 @@ def export_build123d(result, path):
     else:
         print(
             f"Error: {result} doesn't have an exporter for {export_type}")
+
+def export_cadquery(result, path):
+    if path.suffix == ".brep":
+        print("Warning: no CadQuery exporter for brep format")
+        return
+    exporters.export(result, str(path))
+
 
 
 def main():
@@ -163,7 +173,7 @@ def main():
                         os.makedirs(export_dir, exist_ok=True)
                         if "cadquery" in str(type(result)):
                             print(f"Exporting CadQuery part to {export_path}")
-                            exporters.export(result, str(export_path))
+                            export_cadquery(result, export_path)
                         else:
                             print(f"Exporting build123d part to {export_path}")
                             export_build123d(result, export_path)
