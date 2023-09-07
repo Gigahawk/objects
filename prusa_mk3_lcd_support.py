@@ -78,7 +78,7 @@ text_scale_constant = 1.35
 support -= (
     Location((-20, 2, 9.5))
     * extrude(
-        Text("R1", font_size=5*text_scale_constant, font_style=FontStyle.BOLD, font="Helvetica",
+        Text("R1", font_size=5*text_scale_constant, font_style=FontStyle.BOLD, font="Liberation Sans",
              # (openscad's center=true doesn't seem to do anything for text,
              # the locations specified in the original code are for minimum alignment)
              align=Align.MIN),
