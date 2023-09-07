@@ -10,7 +10,9 @@ dependencies:
   - pip
   - cadquery=master
   - pip:
+    - ocp-vscode
+    - ocp-tessellate
+    - ipykernel
     - git+https://github.com/gumyr/cq_warehouse.git#egg=cq_warehouse
     - git+https://github.com/gumyr/build123d
     - git+https://github.com/jdegenstein/jmwright-CQ-Editor
-

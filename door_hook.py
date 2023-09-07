@@ -28,3 +28,10 @@ result = part.part
 
 if "show_object" in locals():
     show_object(part)
+
+
+try:
+    from ocp_vscode import *
+    show(part)
+except:
+    pass
