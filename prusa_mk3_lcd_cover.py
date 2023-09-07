@@ -132,9 +132,9 @@ base_result -= Location((-81, -10.5, -17), (32, 0, 0)) * cube([164, 14, 54.08])
 base_result -= Location((-78, 72.7, -3), (45, 0, 0)) * cube([160, 14, 54.08])
 
 # M3 screw thread
-base_result -= Location((72.5 , 43.2 , 3)) * cylinder(h=20, r1=1.4)
+base_result -= Location((72.5 , 42.7 , 3)) * cylinder(h=20, r1=1.4)
 base_result -= Location((-72.5 , 42.7 , 3)) * cylinder(h=20, r1=1.4)
-base_result -= Location((72.5 , 43.2 , 11.7)) * cylinder(h=3, r1=1.4, r2=2.2)
+base_result -= Location((72.5 , 42.7 , 11.7)) * cylinder(h=3, r1=1.4, r2=2.2)
 base_result -= Location((-72.5 , 42.7 , 11.7)) * cylinder(h=3, r1=1.4, r2=2.2)
 
 
