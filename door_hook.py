@@ -3,14 +3,14 @@
 from build123d import *
 
 # Thickness of the door
-door_thickness = 20
+door_thickness = 21
 # Thickness of the part
 thickness = 5
 # Length of the part that hangs behind the door
 support_length = 10
 width = 30
-length = 70
-hook_dia = 40
+length = 40
+hook_dia = 35
 
 with BuildPart() as part:
     with BuildSketch() as sketch:
