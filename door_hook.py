@@ -3,7 +3,7 @@
 from build123d import *
 
 # Thickness of the door
-door_thickness = 21
+door_thickness = 20.5
 # Thickness of the part
 thickness = 5
 # Length of the part that hangs behind the door
