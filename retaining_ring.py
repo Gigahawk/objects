@@ -27,6 +27,8 @@ def build(inner_dia, planar_thickness, radial_thickness, gap_angle=45,
 
 results = {
     "lian_li_power_button": build(20, 2, 1.5).part,
+    "lian_li_custom_reset_collar": build(8, 1, 0.8).part,
+    "lian_li_custom_reset_pusher": build(3.5, 1, 0.8).part,
 }
 
 if __name__ == "__main__":
@@ -35,6 +37,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
-        show(results["lian_li_power_button"])
+        for name, part in results.items():
+            show_object(part, name=name)
     except:
         pass
