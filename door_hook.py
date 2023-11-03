@@ -26,12 +26,12 @@ with BuildPart() as part:
 
 result = part.part
 
-if "show_object" in locals():
-    show_object(part)
+if __name__ == "__main__":
+    if "show_object" in locals():
+        show_object(part)
 
-
-try:
-    from ocp_vscode import *
-    show(part)
-except:
-    pass
+    try:
+        from ocp_vscode import *
+        show(part)
+    except:
+        pass
