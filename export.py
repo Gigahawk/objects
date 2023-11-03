@@ -116,7 +116,7 @@ def export_build123d(result, path):
     path = str(path)
     if export_type == ".step":
         result.export_step(path)
-    if export_type == ".brep":
+    elif export_type == ".brep":
         result.export_brep(path)
     elif export_type in [".stl", ".3mf"]:
         exporter = Mesher()
