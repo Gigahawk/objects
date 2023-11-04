@@ -54,7 +54,8 @@ with BuildPart() as button:
 
 
 results = {
-    "collar": collar.part
+    "collar": collar.part,
+    "button": button.part
 }
 
 if __name__ == "__main__":
