@@ -11,6 +11,7 @@ collar_retaining_thickness = 1.2
 bottom_thickness = 2
 plate_thickness = 1.6
 pusher_hole_dia = 4.2
+spring_chamfer = (collar_hole_dia - pusher_hole_dia)/2 - 0.01
 
 button_dia = 6.2
 button_len = 5
@@ -38,6 +39,9 @@ with BuildPart() as collar:
     with BuildSketch(Location((0, 0, -bottom_thickness))*collar_bottom):
         Circle(collar_hole_dia/2)
     extrude(dir=(0, 0, -1), until=Until.LAST, mode=Mode.SUBTRACT)
+    spring_face = collar.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-2]
+    spring_edge = spring_face.edges().filter_by(GeomType.CIRCLE).sort_by(SortBy.RADIUS)[0]
+    chamfer(spring_edge, length=spring_chamfer)
 
 with BuildPart() as button:
     with BuildSketch():
