@@ -2,13 +2,13 @@
 from build123d import *
 import logging
 
-clearance = 0.2
+clearance = 0.3
 
-collar_dia = 9
-collar_len = 15
+collar_dia = 8.8
+collar_len = 17
 collar_lip_dia = 11
 collar_lip_thickness = 0.6
-collar_hole_dia = 6.5
+collar_hole_dia = 6.3
 collar_retaining_dia = collar_dia - 1
 collar_retaining_thickness = 1.2
 bottom_thickness = 2
@@ -19,7 +19,7 @@ logging.critical(f"Collar retaining diameter: {collar_retaining_dia}")
 logging.critical(f"Collar retaining thickness: {collar_retaining_dia}")
 
 button_dia = collar_hole_dia - clearance
-button_len = 5
+button_len = 3
 pusher_dia = pusher_hole_dia - clearance
 pusher_len = 22 - button_len
 pusher_retaining_dia = pusher_dia - 0.5
