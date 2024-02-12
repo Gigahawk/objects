@@ -1,6 +1,6 @@
 """Catan base"""
 from build123d import *
-from math import sqrt
+from math import sqrt, radians, cos, sin
 
 outer_flat_dist = 79
 inner_flat_dist = 57.92
@@ -11,17 +11,23 @@ settlement_dia = 15.5
 
 magnet_slot_start = (2.82, 36.43)
 magnet_slot_dia = 4
-magnet_slot_angle = 11 - 90
+magnet_slot_angle = 11
+# Magnets are 3mm in diameter
+magnet_slot_clearance = 3.3
+magnet_slot_bump_height = magnet_slot_dia - magnet_slot_clearance
+magnet_slot_bump_length = 2.5
+magnet_slot_bump_fillet = magnet_slot_bump_height/2 - 0.0001
+# Arbitrary depth of cut for magnet slot
+magnet_slot_depth = 10
 # Each magnet is 6mm long
 magnet_slot_width = 6*2 + 1
-
 
 base_height = 6
 lip_height = 4
 taper_height = 0.89
 taper_angle = 157.5 - 90
 settlement_height = 5.25
-
+plug_clearance = 0.1
 
 with BuildPart() as base:
     # Frame base
@@ -48,11 +54,37 @@ with BuildPart() as base:
             radius=inner_flat_dist/2, side_count=6, major_radius=False)
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
 
-    # Magnet access
+    # Magnet access slot
     with BuildSketch(Plane.ZY) as slot:
         with BuildLine(Plane.ZY):
-            slot_center = PolarLine(start=magnet_slot_start, length=10, angle=magnet_slot_angle)
+            slot_center = PolarLine(
+                start=magnet_slot_start,
+                length=magnet_slot_depth, angle=magnet_slot_angle - 90)
         SlotArc(arc=slot_center, height=magnet_slot_dia)
+        with BuildSketch(mode=Mode.SUBTRACT) as bump:
+            with Locations(
+                    Location(
+                        # Why does this need to be negative?
+                        (magnet_slot_start[0], -magnet_slot_start[1], 0),
+                        (0, 0, -magnet_slot_angle))):
+                with Locations((-magnet_slot_dia/2, 0)):
+                    Rectangle(
+                        magnet_slot_bump_height, magnet_slot_bump_length,
+                        align=(Align.MIN, Align.MIN))
+                Circle(radius=magnet_slot_dia/2, mode=Mode.SUBTRACT)
+        # Hack to select the two right angle corners
+        filter_axis = Axis(
+            origin=(0, -magnet_slot_start[1], magnet_slot_start[0]),
+            direction=(0, cos(radians(magnet_slot_angle)), sin(radians(magnet_slot_angle))))
+        points = (
+            slot.vertices().filter_by_position(
+                axis=filter_axis,
+                minimum=magnet_slot_bump_length - 0.5,
+                maximum=magnet_slot_bump_length + 0.5,
+            )
+        )
+        # 3D fillet doesn't work for some reason, handle in 2D
+        fillet(points, radius=magnet_slot_bump_fillet)
     hole = extrude(amount=magnet_slot_width/2, both=True, mode=Mode.PRIVATE)
     with PolarLocations(0, 6):
         add(hole, mode=Mode.SUBTRACT)
@@ -63,8 +95,49 @@ with BuildPart() as base:
             Circle(radius=settlement_dia/2)
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
 
+with BuildPart() as plug:
+    with BuildSketch(Plane.ZY) as plug_sketch:
+        with Locations(
+                Location(
+                    # Why does this need to be negative?
+                    (magnet_slot_start[0], -magnet_slot_start[1], 0),
+                    (0, 0, -magnet_slot_angle))):
+            Rectangle(
+                magnet_slot_dia - plug_clearance, magnet_slot_depth,
+                align=(Align.CENTER, Align.MIN))
+            Circle(
+                radius=(magnet_slot_dia + plug_clearance)/2,
+                mode=Mode.SUBTRACT)
+            with Locations((-magnet_slot_dia/2, 0)):
+                Rectangle(
+                    magnet_slot_bump_height + plug_clearance/2,
+                    magnet_slot_bump_length + plug_clearance/2,
+                    align=(Align.MIN, Align.MIN),
+                    mode=Mode.SUBTRACT)
+            corners = plug_sketch.vertices().filter_by_position(
+                axis=filter_axis,
+                minimum=magnet_slot_bump_length + plug_clearance/2 - 0.5,
+                maximum=magnet_slot_bump_length + plug_clearance/2 + 0.5,
+            )
+            fillet(corners, radius=magnet_slot_bump_fillet)
+    extrude(amount=(magnet_slot_width - plug_clearance)/2, both=True)
+
+    # Inner lip the art rests on
+    with BuildSketch(Location((0, 0, lip_height))):
+        RegularPolygon(
+            radius=lip_flat_dist/2, side_count=6, major_radius=False)
+    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
+
+    # Inner cutout for weight reduction/magnet access
+    with BuildSketch():
+        RegularPolygon(
+            radius=inner_flat_dist/2, side_count=6, major_radius=False)
+    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
+
+
 results = {
     "base": base.part,
+    "plug": plug.part,
 }
 
 if __name__ == "__main__":
