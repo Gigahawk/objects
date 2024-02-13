@@ -56,26 +56,18 @@ with BuildPart() as base:
 
     # Magnet access slot
     with BuildSketch(Plane.ZY) as slot:
-        with BuildLine(Plane.ZY):
-            slot_center = PolarLine(
-                start=magnet_slot_start,
-                length=magnet_slot_depth, angle=magnet_slot_angle - 90)
-        SlotArc(arc=slot_center, height=magnet_slot_dia)
-        with BuildSketch(mode=Mode.SUBTRACT) as bump:
-            with Locations(
-                    Location(
-                        # Why does this need to be negative?
-                        (magnet_slot_start[0], -magnet_slot_start[1], 0),
-                        (0, 0, -magnet_slot_angle))):
-                with Locations((-magnet_slot_dia/2, 0)):
-                    Rectangle(
-                        magnet_slot_bump_height, magnet_slot_bump_length,
-                        align=(Align.MIN, Align.MIN))
-                Circle(radius=magnet_slot_dia/2, mode=Mode.SUBTRACT)
+        with Locations(Location(magnet_slot_start, magnet_slot_angle - 90)):
+            SlotCenterPoint(
+                point=(0, 0), height=magnet_slot_dia, center=(magnet_slot_depth/2, 0))
+            with Locations((0, -magnet_slot_dia/2)):
+                Rectangle(
+                    magnet_slot_bump_length, magnet_slot_bump_height,
+                    align=(Align.MIN, Align.MIN), mode=Mode.SUBTRACT)
+            Circle(radius=magnet_slot_dia/2)
         # Hack to select the two right angle corners
         filter_axis = Axis(
-            origin=(0, -magnet_slot_start[1], magnet_slot_start[0]),
-            direction=(0, cos(radians(magnet_slot_angle)), sin(radians(magnet_slot_angle))))
+            origin=(0, magnet_slot_start[1], magnet_slot_start[0]),
+            direction=(0, -cos(radians(magnet_slot_angle)), sin(radians(magnet_slot_angle))))
         points = (
             slot.vertices().filter_by_position(
                 axis=filter_axis,
@@ -97,23 +89,19 @@ with BuildPart() as base:
 
 with BuildPart() as plug:
     with BuildSketch(Plane.ZY) as plug_sketch:
-        with Locations(
-                Location(
-                    # Why does this need to be negative?
-                    (magnet_slot_start[0], -magnet_slot_start[1], 0),
-                    (0, 0, -magnet_slot_angle))):
+        with Locations(Location(magnet_slot_start, magnet_slot_angle - 90)):
             Rectangle(
-                magnet_slot_dia - plug_clearance, magnet_slot_depth,
-                align=(Align.CENTER, Align.MIN))
+                magnet_slot_depth, magnet_slot_dia - plug_clearance,
+                align=(Align.MIN, Align.CENTER))
             Circle(
                 radius=(magnet_slot_dia + plug_clearance)/2,
                 mode=Mode.SUBTRACT)
-            with Locations((-magnet_slot_dia/2, 0)):
+            with Locations((0, -magnet_slot_dia/2)):
                 Rectangle(
-                    magnet_slot_bump_height + plug_clearance/2,
                     magnet_slot_bump_length + plug_clearance/2,
-                    align=(Align.MIN, Align.MIN),
-                    mode=Mode.SUBTRACT)
+                    magnet_slot_bump_height + plug_clearance/2,
+                    align=Align.MIN, mode=Mode.SUBTRACT,
+                )
             corners = plug_sketch.vertices().filter_by_position(
                 axis=filter_axis,
                 minimum=magnet_slot_bump_length + plug_clearance/2 - 0.5,
