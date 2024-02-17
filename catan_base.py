@@ -27,7 +27,8 @@ lip_height = 4
 taper_height = 0.89
 taper_angle = 157.5 - 90
 settlement_height = 5.25
-plug_clearance = 0.1
+plug_clearance = 0.15
+plug_width_clearance = 0.3
 
 with BuildPart() as base:
     # Frame base
@@ -108,7 +109,7 @@ with BuildPart() as plug:
                 maximum=magnet_slot_bump_length + plug_clearance/2 + 0.5,
             )
             fillet(corners, radius=magnet_slot_bump_fillet)
-    extrude(amount=(magnet_slot_width - plug_clearance)/2, both=True)
+    extrude(amount=(magnet_slot_width - plug_width_clearance)/2, both=True)
 
     # Inner lip the art rests on
     with BuildSketch(Location((0, 0, lip_height))):
@@ -134,6 +135,6 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
-        show_all()
-    except:
+        show_all(measure_tools=True)
+    except ImportError:
         pass
