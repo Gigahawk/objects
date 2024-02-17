@@ -1,4 +1,8 @@
-"""Catan base"""
+"""Catan baseplate compatible with Dakanzala/MATT makes Catan 2.0 set
+
+https://www.thingiverse.com/thing:2525047
+"""
+
 from build123d import *
 from math import sqrt, radians, cos, sin
 
