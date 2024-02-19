@@ -9,7 +9,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -28,16 +28,19 @@ jobs:
       - name: Generate output name
         run: echo "NAME=${BUILD_DATE}_${BUILD_BRANCH}_${BUILD_COMMIT}_object_bin" >> $GITHUB_ENV
 
-      - name: Setup Anaconda
-        uses: conda-incubator/setup-miniconda@v2.1.1
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          # miniforge may be required if running with the medium image from act
-          # miniforge-version: latest
-          environment-file: environment_ci.yml
-          activate-environment: cadquery_ci
+          python-version: "3.10"
+      
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2
+      
+      - name: Install dependencies
+        run: poetry install
 
       - name: Build objects
-        run: python export.py
+        run: poetry run python export.py
 
       - name: Archive objects
         # Skip archive if running on act
