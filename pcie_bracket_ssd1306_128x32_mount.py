@@ -24,6 +24,11 @@ cutout_height = 9.5
 cutout_taper = 45
 cutout_horizontal_offset = 0
 cutout_vertical_offset = 0
+window_support_gap = 2
+clip_offset = 5
+clip_width = 10
+clip_thickness = 2
+clip_overhang = 0.6
 
 _cutout_vertical_offset = cutout_vertical_offset + pcb_vertical_offset
 _pcb_width = pcb_width + tolerance
@@ -58,6 +63,7 @@ with BuildPart() as mount:
                 mode=Mode.SUBTRACT)
     extrude(amount=guide_thickness)
     guide_face = mount.faces().sort_by(Axis.Y)[0]
+    guide_right_face = mount.faces(Select.LAST).filter_by(Axis.X).sort_by(Axis.X, reverse=True)[1]
     tab_edge = guide_face.edges().filter_by(Axis.Z).sort_by(Axis.X)[0]
     with BuildSketch() as tab_sketch:
         with Locations(tab_edge.start_point()):
@@ -101,11 +107,9 @@ with BuildPart() as mount:
     )
     with BuildSketch(mount_face) as cutout_support_sketch:
         with Locations((cutout_horizontal_offset, -_cutout_vertical_offset)):
-            # Don't double support gap, taper seems to cause
-            # weird behavior with this gap
             Rectangle(
-                cutout_width - support_gap,
-                cutout_height - support_gap,
+                cutout_width - window_support_gap*2,
+                cutout_height - support_gap*2,
             )
     extrude(
         amount=-thickness, taper=-cutout_taper
@@ -113,11 +117,16 @@ with BuildPart() as mount:
     with BuildSketch(mount_face.offset(support_gap)) as guide_support_sketch:
         with Locations((0, pcb_vertical_offset)):
             Rectangle(
-                _pcb_width - 2*support_gap,
+                _pcb_width - 2*window_support_gap,
                 _pcb_height - 2*support_gap)
     extrude(
-        amount=guide_thickness - support_gap
+        amount=guide_thickness - support_gap - tab_gap
     )
+    with BuildSketch(guide_right_face.offset(clip_offset)) as clip_sketch:
+        with Locations((0, guide_thickness/2)):
+            Rectangle(main_height, clip_thickness, align=(Align.CENTER, Align.MIN))
+            #with BuildLine() as profile:
+            #    Line((pcb_height + tolerance/2 - clip_overhang, 0))
 
 result = mount.part
 
