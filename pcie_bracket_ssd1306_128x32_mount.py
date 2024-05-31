@@ -22,15 +22,15 @@ tab_thickness = 1.2
 tab_length = 12
 tab_chamfer_depth = 6
 cutout_width = 23.8
-cutout_height = 9.5
+cutout_height = 8
 cutout_taper = 45
-cutout_horizontal_offset = 0
-cutout_vertical_offset = 0
+cutout_horizontal_offset = -0.5
+cutout_vertical_offset = 0.5
 window_support_gap = 2
 clip_offset = 3
 clip_width = 10
 clip_thickness = 2
-clip_overhang = 0.6
+clip_overhang = 0.4
 clip_chamfer_angle = 30
 
 _cutout_vertical_offset = cutout_vertical_offset + pcb_vertical_offset
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
-        show_all()
+        show_all(reset_camera=Camera.KEEP)
     except ImportError:
         pass
 
