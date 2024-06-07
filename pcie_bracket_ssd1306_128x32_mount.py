@@ -24,8 +24,9 @@ tab_chamfer_depth = 6
 cutout_width = 23.8
 cutout_height = 8
 cutout_taper = 45
-cutout_horizontal_offset = -0.5
-cutout_vertical_offset = 0.5
+cutout_chamfer = 0.8
+cutout_horizontal_offset = -0.75
+cutout_vertical_offset = 0.75
 window_support_gap = 2
 clip_offset = 3
 clip_width = 10
@@ -104,6 +105,7 @@ with BuildPart() as mount:
     with BuildSketch(mount_face) as cutout_sketch:
         with Locations((cutout_horizontal_offset, mount_face.center().Z - main_height/2 -_cutout_vertical_offset)):
             Rectangle(cutout_width, cutout_height)
+        chamfer(cutout_sketch.vertices(), 0.8)
     extrude(
         amount=-thickness, mode=Mode.SUBTRACT,
         taper=-cutout_taper
