@@ -29,9 +29,9 @@ cutout_horizontal_offset = -0.75
 cutout_vertical_offset = 0.75
 window_support_gap = 2
 clip_offset = 3
-clip_width = 10
+clip_width = 12
 clip_thickness = 2
-clip_overhang = 0.4
+clip_overhang = 0.6
 clip_chamfer_angle = 30
 
 _cutout_vertical_offset = cutout_vertical_offset + pcb_vertical_offset
