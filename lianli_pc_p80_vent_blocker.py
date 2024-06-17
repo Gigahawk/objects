@@ -3,7 +3,7 @@ from build123d import *
 
 thickness = 4
 blocker_width = 50
-blocker_length = 160
+blocker_length = 160.5
 hole_dia = 2.75
 hole_vertical_sep = 18.7
 hole_horizontal_sep = 6.3
