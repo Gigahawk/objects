@@ -3,11 +3,11 @@ from build123d import *
 
 thickness = 4
 blocker_width = 50
-blocker_length = 160.5
+blocker_length = 160
 hole_dia = 2.75
 hole_vertical_sep = 18.7
 hole_horizontal_sep = 6.3
-hole_spacing = 131.3
+hole_spacing = 132.3
 fillet_rad = 10
 # The actual vent holes on the case come really close
 # to the screw holes, leave extra margin on the windowed
