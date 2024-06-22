@@ -17,6 +17,7 @@ fillet_rad = 10
 window_length = 110
 window_height = 34
 window_fillet = 5
+filter_thickness = 0.5
 
 with BuildPart() as blocker_plate:
     with BuildSketch() as blocker_sketch:
@@ -44,14 +45,24 @@ with BuildPart() as window_plate:
         fillet(window.vertices(), radius=window_fillet)
     extrude(amount=thickness)
 
+with BuildPart() as filter_plate:
+    add(window_plate)
+    with BuildSketch() as filter_sketch:
+        filter = Rectangle(
+            window_length - 0.00001, window_height - 0.00001,
+        )
+        fillet(filter.vertices(), radius=window_fillet)
+    extrude(amount=filter_thickness, mode=Mode.ADD)
+
 results = {
     "blocker": blocker_plate.part,
-    "window": window_plate.part
+    "window": window_plate.part,
+    "filter": filter_plate.part,
 }
 
 if __name__ == "__main__":
     try:
         from ocp_vscode import *
-        show_all(reset_camera=Camera.KEEP, measure_tools=True)
+        show_all(reset_camera=Camera.KEEP)
     except ImportError:
         pass
