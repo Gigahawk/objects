@@ -2,6 +2,7 @@
 from build123d import *
 
 thickness = 4
+blocker_chamfer_angle = 45
 blocker_width = 50
 blocker_length = 160
 hole_dia = 2.75
@@ -22,6 +23,9 @@ filter_thickness = 0.5
 with BuildPart() as blocker_plate:
     with BuildSketch() as blocker_sketch:
         outer_plate = Rectangle(blocker_length, blocker_width)
+        fillet(outer_plate.vertices(), radius=fillet_rad)
+    extrude(amount=thickness, taper=blocker_chamfer_angle)
+    with BuildSketch() as hole_sketch:
         _inner_hole_rect = Rectangle(
             hole_spacing, hole_vertical_sep,
             mode=Mode.PRIVATE)
@@ -32,21 +36,23 @@ with BuildPart() as blocker_plate:
         for _rect in [_inner_hole_rect, _outer_hole_rect]:
             hole_points.extend(_rect.vertices())
         with Locations(hole_points):
-            Circle(radius=hole_dia/2, mode=Mode.SUBTRACT)
-        fillet(outer_plate.vertices(), radius=fillet_rad)
-    extrude(amount=thickness)
+            Circle(radius=hole_dia/2)
+    extrude(amount=thickness, mode=Mode.SUBTRACT)
 
 with BuildPart() as window_plate:
+    add(blocker_plate)
     with BuildSketch() as window_sketch:
-        add(blocker_sketch)
         window = Rectangle(
             window_length, window_height,
-            mode=Mode.SUBTRACT)
+        )
         fillet(window.vertices(), radius=window_fillet)
-    extrude(amount=thickness)
+    extrude(amount=thickness, mode=Mode.SUBTRACT)
 
 with BuildPart() as filter_plate:
     add(window_plate)
+    # Print the filter part with only infill
+    # (no top/bottom layers or perimeters) to
+    # get a printed filter grate
     with BuildSketch() as filter_sketch:
         filter = Rectangle(
             window_length - 0.00001, window_height - 0.00001,
