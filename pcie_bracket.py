@@ -4,7 +4,7 @@ Based on
 https://web.archive.org/web/20201112014246/http://read.pudn.com/downloads166/ebook/758109/PCI_Express_CEM_1.1.pdf
 """
 
-import logging
+from math import tan, radians
 from build123d import *
 
 full_height = 21.59
@@ -32,6 +32,8 @@ taper_depth = 7.27
 
 # Make thicker for printing
 thickness = 2.0
+taper_thickness = 1.0
+taper_section_length = 4.11/tan(radians(45))
 
 support_gap = 0.2
 
@@ -129,6 +131,29 @@ with BuildPart() as bracket:
             height=screw_hole_cutout_diameter)
     extrude(until=Until.FIRST, mode=Mode.SUBTRACT)
 
+    with BuildSketch() as taper_thinning:
+        with BuildLine():
+            Line(
+                (inner_length, -taper_thickness),
+                (inner_length - taper_depth, -taper_thickness),
+            )
+            Line(
+                (inner_length - taper_depth, -taper_thickness),
+                (
+                    (
+                        inner_length
+                        - taper_depth
+                        - taper_section_length
+                    ),
+                    -thickness
+                )
+            )
+            offset(
+                amount=thickness, side=Side.LEFT,
+                closed=True, kind=Kind.TANGENT)
+        make_face()
+    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
+
 result = bracket.part
 
 if __name__ == "__main__":
@@ -137,7 +162,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
-        show_all()
+        show_all(reset_camera=Camera.KEEP)
     except ImportError:
         pass
 
