@@ -51,7 +51,13 @@
       devShells.default = pkgs.mkShell {
         buildInputs = [
           poetryEnv
+          pkgs.fontconfig
         ];
+        shellHook = ''
+          # https://github.com/NixOS/nixpkgs/issues/176081#issuecomment-1145825623
+          export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
+          export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts/
+        '';
       };
       devShells.poetry = pkgs.mkShell {
         buildInputs = [
