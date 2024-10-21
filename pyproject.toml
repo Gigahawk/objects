@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.10"
 cadquery = "^2.4.0"
 build123d = "^0.3.0"
-ocp-vscode = "^2.1.1"
+ocp-vscode = "^2.4.1"
 cq-warehouse = {git = "https://github.com/gumyr/cq_warehouse.git"}
 
 
