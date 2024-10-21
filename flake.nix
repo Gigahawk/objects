@@ -47,6 +47,7 @@
             ipython = pkgs.python311Packages.ipython;
             typing-extensions = pkgs.python311Packages.typing-extensions;
             six = pkgs.python311Packages.six;
+            orjson = pkgs.python311Packages.orjson;
           });
       };
     in {
@@ -68,6 +69,7 @@
         ];
         packages = [
           pkgs.poetry
+          pkgs.python311
         ];
       };
     });

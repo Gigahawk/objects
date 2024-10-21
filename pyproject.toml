@@ -5,9 +5,10 @@ description = ""
 authors = ["Jasper Chan <jasperchan515@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.12"
 cadquery = "^2.4.0"
 build123d = "^0.3.0"
 ocp-vscode = "^2.4.1"
