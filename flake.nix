@@ -18,6 +18,8 @@
         # https://github.com/nix-community/poetry2nix/blob/master/docs/edgecases.md
         overrides = defaultPoetryOverrides.extend
           (final: prev: {
+            build123d = prev.build123d.overridePythonAttrs
+              ( old: { buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ]; } );
             cq-warehouse = prev.cq-warehouse.overridePythonAttrs
               ( old: { buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ]; } );
             ocp-tessellate = prev.ocp-tessellate.overridePythonAttrs

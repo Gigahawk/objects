@@ -10,7 +10,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 cadquery = "^2.4.0"
-build123d = "^0.3.0"
+build123d = "^0.8.0"
 ocp-vscode = "^2.6.0"
 cq-warehouse = {git = "https://github.com/gumyr/cq_warehouse.git"}
 click = "^8.1.7"
