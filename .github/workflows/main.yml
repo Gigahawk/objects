@@ -7,9 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,19 +28,26 @@ jobs:
       - name: Generate output name
         run: echo "NAME=${BUILD_DATE}_${BUILD_BRANCH}_${BUILD_COMMIT}_object_bin" >> $GITHUB_ENV
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v26
+
+      - name: Restore and cache Nix store
+        uses: nix-community/cache-nix-action@v5
         with:
-          python-version: "3.10"
+          primary-key: cache-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
+          restore-prefixes-first-match: cache-${{ runner.os }}-nix-store-
 
-      - name: Setup Poetry
-        uses: abatilo/actions-poetry@v2
+      - name: Create a custom shell for devenv
+        shell: bash
+        run: |
+          mkdir -p $HOME/.local/bin
+          echo "#!/usr/bin/env bash" > $HOME/.local/bin/devenv
+          echo "nix develop --command bash \"\$1\"" >> $HOME/.local/bin/devenv
+          chmod +x $HOME/.local/bin/devenv
 
-      - name: Install dependencies
-        run: poetry install
-
-      - name: Build objects
-        run: poetry run python export.py
+      - name: Build the devenv shell
+        shell: devenv {0}
+        run: python export.py
 
       - name: Archive objects
         # Skip archive if running on act
