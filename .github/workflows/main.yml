@@ -45,7 +45,7 @@ jobs:
           echo "nix develop --command bash \"\$1\"" >> $HOME/.local/bin/devenv
           chmod +x $HOME/.local/bin/devenv
 
-      - name: Build the devenv shell
+      - name: Export parts
         shell: devenv {0}
         run: python export.py
 
