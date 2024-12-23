@@ -1,3 +1,4 @@
+import multiprocessing
 import click
 from pathlib import Path
 import os
@@ -134,10 +135,44 @@ def export_cadquery(result, path):
     exporters.export(result, str(path))
 
 
+def _do_export(module, path):
+    print(f"Importing {module}")
+    mod = import_module(module)
+    if hasattr(mod, 'result'):
+        results = {"default": mod.result}
+    elif hasattr(mod, 'results'):
+        results = mod.results
+    else:
+        print(
+            f"Warning: Module {module} doesn't contain any results")
+        return
+
+    for name, result in results.items():
+        for t in export_types:
+            export_path = (
+                Path("export") / (
+                    path
+                    .with_stem(path.stem + f"-{name}")
+                    .with_suffix(t)
+                )
+            )
+            if isinstance(result, cq.Assembly):
+                result = result.toCompound()
+            # Ensure export dir exists prior to writing to it
+            export_dir = export_path.parent
+            os.makedirs(export_dir, exist_ok=True)
+            if "cadquery" in str(type(result)):
+                print(f"Exporting CadQuery part to {export_path}")
+                export_cadquery(result, export_path)
+            else:
+                print(f"Exporting build123d part to {export_path}")
+                export_build123d(result, export_path)
+
 
 @click.command()
 @click.option("-f", "--file", "files", multiple=True)
-def main(files):
+@click.option("-j", "--jobs", "jobs", default=0, help="Number of jobs to run in parallel")
+def main(files, jobs):
     print("Cleaning export folder")
     if files:
         files = [Path(f) for f in files]
@@ -148,45 +183,21 @@ def main(files):
     except FileNotFoundError:
         pass
     os.makedirs("export")
-    for path in files:
-        if (
-            path.suffix != ".py"
-            or path.stem == "export"
-            or str(path).startswith(".")
-        ):
-            continue
-        module = ".".join(path.with_suffix("").parts)
-        print(f"Importing {module}")
-        mod = import_module(module)
-        if hasattr(mod, 'result'):
-            results = {"default": mod.result}
-        elif hasattr(mod, 'results'):
-            results = mod.results
-        else:
-            print(
-                f"Warning: Module {module} doesn't contain any results")
-            continue
-
-        for name, result in results.items():
-            for t in export_types:
-                export_path = (
-                    Path("export") / (
-                        path
-                        .with_stem(path.stem + f"-{name}")
-                        .with_suffix(t)
-                    )
-                )
-                if isinstance(result, cq.Assembly):
-                    result = result.toCompound()
-                # Ensure export dir exists prior to writing to it
-                export_dir = export_path.parent
-                os.makedirs(export_dir, exist_ok=True)
-                if "cadquery" in str(type(result)):
-                    print(f"Exporting CadQuery part to {export_path}")
-                    export_cadquery(result, export_path)
-                else:
-                    print(f"Exporting build123d part to {export_path}")
-                    export_build123d(result, export_path)
+    if jobs <= 0:
+        jobs = multiprocessing.cpu_count()
+    print(f"Exporting with pool size {jobs}")
+    with multiprocessing.Pool(jobs) as p:
+        for path in files:
+            if (
+                path.suffix != ".py"
+                or path.stem == "export"
+                or str(path).startswith(".")
+            ):
+                continue
+            module = ".".join(path.with_suffix("").parts)
+            p.apply_async(_do_export, [module, path])
+        p.close()
+        p.join()
 
 if __name__ == "__main__":
     main()
