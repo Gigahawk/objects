@@ -30,6 +30,8 @@
               ( old: { buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ]; } );
             trianglesolver = prev.trianglesolver.overridePythonAttrs
               ( old: { buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ]; } );
+            click = prev.click.overridePythonAttrs
+              ( old: { buildInputs = (old.buildInputs or [ ]) ++ [ prev.flit-core ]; } );
             ## Not sure why just overriding build inputs doesn't work for this package
             casadi = pkgs.python311Packages.casadi;
             #casadi = prev.casadi.override {
