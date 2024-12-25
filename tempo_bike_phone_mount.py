@@ -111,8 +111,8 @@ with BuildPart() as phone_stand:
     extrude(phone_holder_chin.sketch, amount=cable_width/2, both=True, mode=Mode.SUBTRACT)
 
 results = {
-    "pipe": mount_pipe,
-    "stand": phone_stand
+    "pipe": mount_pipe.part,
+    "stand": phone_stand.part,
 }
 
 if __name__ == "__main__":
