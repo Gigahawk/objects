@@ -185,19 +185,24 @@ def main(files, jobs):
     os.makedirs("export")
     if jobs <= 0:
         jobs = multiprocessing.cpu_count()
-    print(f"Exporting with pool size {jobs}")
-    with multiprocessing.Pool(jobs) as p:
-        for path in files:
-            if (
-                path.suffix != ".py"
-                or path.stem == "export"
-                or str(path).startswith(".")
-            ):
-                continue
-            module = ".".join(path.with_suffix("").parts)
-            p.apply_async(_do_export, [module, path])
-        p.close()
-        p.join()
+    export_args = []
+    for path in files:
+        if (
+            path.suffix != ".py"
+            or path.stem == "export"
+            or str(path).startswith(".")
+        ):
+            continue
+        module = ".".join(path.with_suffix("").parts)
+        export_args.append((module, path))
+    if jobs > 1:
+        print(f"Exporting with pool size {jobs}")
+        with multiprocessing.Pool(jobs) as p:
+            p.starmap(_do_export, export_args)
+    else:
+        print(f"Exporting sequentially")
+        for module, path in export_args:
+            _do_export(module, path)
 
 if __name__ == "__main__":
     main()
