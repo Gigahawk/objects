@@ -6,16 +6,16 @@ Replaces the included computer module.
 from math import tan, cos, radians
 from build123d import *
 
-tol = 0.15
+tol = 0.5
 
-mount_thickness = 2
-mount_max_length = 75
+mount_thickness = 1.2
+mount_max_length = 55
 mount_retention_width = 2
 mount_retention_depth = 2
 
-_pipe_outer_dia = 50.2
+_pipe_outer_dia = 50.5
 pipe_outer_dia = _pipe_outer_dia + tol
-pipe_cut_angle = 45
+pipe_cut_angle = 39.7
 pipe_cut_depth = pipe_outer_dia * tan(radians(pipe_cut_angle))
 pipe_cut_hypot = pipe_outer_dia / cos(radians(pipe_cut_angle))
 
@@ -60,8 +60,7 @@ with BuildPart() as mount_pipe:
 with BuildPart() as phone_stand:
     add(shell)
     Cylinder(
-        # Hack: OCC tol seems to cause this cyl to not be tall enough
-        _pipe_outer_dia/2, mount_max_length + 10,
+        _pipe_outer_dia/2, mount_max_length,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
         mode=Mode.INTERSECT
     )
