@@ -39,7 +39,14 @@ tray_width = (
     + wall_thickness
 )
 tray_height = card_height/3
-tray_depth = tray_height - 5
+tray_depth = tray_height - 3
+
+cover_tol = 0.1
+cover_wall_thickness = 2
+cover_lip_width = tray_width + 2*cover_wall_thickness + cover_tol
+cover_lip_length = tray_length + 2*cover_wall_thickness + cover_tol
+cover_lip_thickness = 2
+
 
 with BuildPart() as tray:
     Box(
@@ -59,9 +66,12 @@ with BuildPart() as tray:
             Rectangle(explorer_thickness, card_width, align=Align.MAX)
     extrude(amount=-tray_depth, mode=Mode.SUBTRACT)
     top_surface = tray.faces().sort_by(Axis.Z, reverse=True)[0]
+    bottom_surface = tray.faces().sort_by(Axis.Z)[0]
     chamfer(top_surface.edges(), length=wall_chamfer)
-
-
+    with BuildSketch(bottom_surface):
+        Rectangle(cover_lip_length, cover_lip_width)
+        Rectangle(tray_length, tray_width, mode=Mode.SUBTRACT)
+    extrude(amount=-cover_lip_thickness)
 
 
 result = tray.part
@@ -69,7 +79,7 @@ result = tray.part
 if __name__ == "__main__":
     try:
         from ocp_vscode import *
-        show_all()
+        show_all(reset_camera=Camera.KEEP)
     except ImportError:
         pass
 
