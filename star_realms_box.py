@@ -83,6 +83,11 @@ cover_inner_height = card_height + tray_bottom_thickness - cover_lip_thickness +
 cover_top_chamfer = 2
 cover_finger_dia = 18
 
+logo_orig_thickness = 2
+logo_xy_scale = 0.5
+logo_z_scale = 0.5
+logo_thickness = logo_orig_thickness*logo_z_scale
+logo_tol = 0.1
 
 with BuildPart() as tray:
     Box(
@@ -184,9 +189,19 @@ with BuildPart() as cover:
     ):
         Cylinder(cover_finger_dia/2, max(tray_length, tray_width)*2, mode=Mode.SUBTRACT)
 
+    with BuildSketch(cover_top, mode=Mode.PRIVATE) as _logo_sketch:
+        offset(
+            scale(
+                make_face(import_svg("res/star_realms_logo.svg")),
+                by=logo_xy_scale
+            ),
+            logo_tol,
+            kind=Kind.INTERSECTION
+        )
     with BuildSketch(cover_top) as logo_sketch:
-        make_face(import_svg("res/star_realms_logo.svg"))
-    extrude(amount=1)
+        center = _logo_sketch.sketch.bounding_box().center()
+        add(_logo_sketch.sketch.moved(Location(-center)))
+    extrude(amount=-logo_thickness, mode=Mode.SUBTRACT)
 
 
 
