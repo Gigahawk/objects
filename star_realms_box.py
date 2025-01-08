@@ -192,7 +192,10 @@ with BuildPart() as cover:
     with BuildSketch(cover_top, mode=Mode.PRIVATE) as _logo_sketch:
         offset(
             scale(
-                make_face(import_svg("res/star_realms_logo.svg")),
+                mirror(
+                    make_face(import_svg("res/star_realms_logo.svg")),
+                    about=Plane.XZ
+                ),
                 by=logo_xy_scale
             ),
             logo_tol,
@@ -203,17 +206,43 @@ with BuildPart() as cover:
         add(_logo_sketch.sketch.moved(Location(-center)))
     extrude(amount=-logo_thickness, mode=Mode.SUBTRACT)
 
+    logo_face = cover.faces(select=Select.LAST).filter_by(Axis.Z).sort_by(Axis.Z)[0]
+    RigidJoint(
+        label="logo_face",
+        joint_location=Location(logo_face.bounding_box().center())
+    )
+
+_logo = import_step("res/star_realms_logo.step")
+_logo = Solid(_logo)
+_logo = scale(
+    _logo,
+    by=(logo_xy_scale, logo_xy_scale, logo_z_scale)
+)
+logo_center = _logo.bounding_box().center()
+_logo = _logo.moved(Location(-logo_center))
+_logo = Rot(180, 0, 0) * _logo
+with BuildPart() as logo:
+    add(_logo)
+    logo_bottom_face = logo.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
+    RigidJoint(
+        label="logo_bottom_face",
+        joint_location=Location(logo_bottom_face.bounding_box().center())
+    )
+logo.part.color = Color("red")
+cover.part.joints["logo_face"].connect_to(logo.part.joints["logo_bottom_face"])
+
 
 
 results = {
     "tray": tray.part,
-    "cover": cover.part
+    "cover": cover.part,
+    "logo": logo.part
 }
 
 if __name__ == "__main__":
     try:
         from ocp_vscode import *
-        show_all(reset_camera=Camera.KEEP)
+        show_all(reset_camera=Camera.KEEP, render_joints=True)
     except ImportError:
         pass
 
