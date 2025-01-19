@@ -26,8 +26,8 @@ manual_width = 138
 manual_height = 87
 manual_thickness = 4
 
-wall_thickness = 4
-wall_chamfer = 1.5
+wall_thickness = 2.4
+wall_chamfer = 0.6
 
 corner_chamfer = 2
 
@@ -104,7 +104,8 @@ logo_orig_thickness = 2
 logo_xy_scale = 0.5
 logo_z_scale = 0.5
 logo_thickness = logo_orig_thickness*logo_z_scale
-logo_tol = 0.1
+logo_tol = 0.3
+logo_support_clearance = 0.0
 
 _plane_length_center = Plane.YZ.offset(tray_length/2)
 _plane_width_center = Plane.XZ.offset(-tray_width/2)
@@ -185,6 +186,14 @@ with BuildPart() as _manual:
         Rectangle(manual_thickness, manual_width)
     extrude(amount=manual_height)
 
+_logo_outline = scale(
+    mirror(
+        make_face(import_svg("res/star_realms_logo.svg")),
+        about=Plane.XZ
+    ),
+    by=logo_xy_scale
+)
+
 with BuildPart() as cover:
     with BuildSketch(cover_lip_top_surface, mode=Mode.PRIVATE) as cover_walls_base_sketch:
         _cover_project_sketch = make_face(project(bottom_surface.edges(), mode=Mode.PRIVATE))
@@ -228,13 +237,7 @@ with BuildPart() as cover:
 
     with BuildSketch(cover_top, mode=Mode.PRIVATE) as _logo_sketch:
         offset(
-            scale(
-                mirror(
-                    make_face(import_svg("res/star_realms_logo.svg")),
-                    about=Plane.XZ
-                ),
-                by=logo_xy_scale
-            ),
+            _logo_outline,
             logo_tol,
             kind=Kind.INTERSECTION
         )
@@ -248,6 +251,12 @@ with BuildPart() as cover:
         label="logo_face",
         joint_location=Location(logo_face.bounding_box().center())
     )
+
+with BuildPart() as logo_support:
+    with BuildSketch(cover_top):
+        center = _logo_outline.bounding_box().center()
+        add(_logo_outline.moved(Location(-center)))
+    extrude(amount=-(logo_thickness - logo_support_clearance))
 
 _logo = import_step("res/star_realms_logo.step")
 _logo = Solid(_logo)
@@ -273,7 +282,8 @@ cover.part.joints["logo_face"].connect_to(logo.part.joints["logo_bottom_face"])
 results = {
     "tray": tray.part,
     "cover": cover.part,
-    "logo": logo.part
+    "logo": logo.part,
+    "logo_support": logo_support.part
 }
 
 if __name__ == "__main__":
