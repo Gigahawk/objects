@@ -74,6 +74,7 @@ tray_challenge_cards_depth = challenge_card_height/2
 tray_manual_depth = manual_height/2
 
 cover_tol = 0.2
+cover_chamfer_extra_tol = 0.5
 cover_wall_thickness = 2
 cover_lip_width = tray_width + 2*cover_wall_thickness + cover_tol
 cover_lip_length = tray_length + 2*cover_wall_thickness + cover_tol
@@ -96,8 +97,15 @@ with BuildPart() as tray:
         tray_height,
         align=(Align.MIN, Align.MIN, Align.MAX)
     )
-    corner_edges = tray.edges().filter_by(Axis.Z)
-    chamfer(corner_edges, length=corner_chamfer)
+    # Precache bottom_surface and chamfer with nominal dimensions for offsetting,
+    # then actually chamfer the object with extra tolerance
+    bottom_surface = tray.faces().sort_by(Axis.Z)[0]
+    fake_corner_edges = bottom_surface.vertices()
+    bottom_surface = bottom_surface.chamfer_2d(
+        distance=corner_chamfer, distance2=corner_chamfer, vertices=fake_corner_edges
+    )
+    real_corner_edges = tray.edges().filter_by(Axis.Z)
+    chamfer(real_corner_edges, length=corner_chamfer + cover_chamfer_extra_tol)
 
     with BuildSketch() as cards_layout:
         with Locations((wall_thickness, wall_thickness)):
@@ -126,7 +134,6 @@ with BuildPart() as tray:
     manual_surface = tray.faces(select=Select.LAST).filter_by(Axis.Z).sort_by(Axis.Z)[0]
 
     cover_top = tray.faces().sort_by(Axis.Z, reverse=True)[0]
-    bottom_surface = tray.faces().sort_by(Axis.Z)[0]
     chamfer(cover_top.edges(), length=wall_chamfer)
     with BuildSketch(bottom_surface) as cover_lip_sketch:
         offset(
