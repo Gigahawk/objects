@@ -210,8 +210,10 @@ with BuildPart() as cover:
         # If we don't move sometimes the top doesn't get added to the right place?
         add(cover_walls_outer_sketch.sketch.moved(Location(-cover_walls_outer_sketch.sketch.center())))
     extrude(amount=cover_wall_thickness)
-    cover_top = cover.faces().filter_by(Axis.Z).sort_by(Axis.Z, reverse=True)[0]
+    cover_top, cover_top_inner = cover.faces().filter_by(Axis.Z).sort_by(Axis.Z, reverse=True)[:2]
     chamfer(cover_top.edges(), length=cover_top_chamfer)
+    if cover_top_chamfer - cover_wall_thickness > 0:
+        chamfer(cover_top_inner.edges(), length=cover_top_chamfer - cover_wall_thickness)
 
     with BuildSketch(
         Location((tray_length, tray_width/2, -tray_height + retaining_nub_height), (0, 90, 0)),
