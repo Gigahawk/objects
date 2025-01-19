@@ -7,7 +7,7 @@ from build123d import *
 
 card_tol = 0.1
 
-_card_width = 66.7
+_card_width = 68.6
 card_width = _card_width + card_tol
 card_height = 92.7
 card_thickness = 62.7 / (80 + 10 + 16 + 4 + 4)
