@@ -84,9 +84,10 @@ cover_inner_height = card_height + tray_bottom_thickness - cover_lip_thickness +
 cover_outer_length = tray_length + 2*cover_wall_thickness + cover_tol
 cover_top_chamfer = 2
 cover_finger_dia = 18
-cover_grip_dia = 50
-cover_grip_height = cover_inner_height*0.80
+cover_grip_angle = 30
+cover_grip_height_pos = cover_inner_height*0.80
 cover_grip_depth = 0.8
+cover_grip_height = 15
 cover_grip_width = 80
 
 retaining_nub_pos_dia = 1.5
@@ -219,17 +220,11 @@ with BuildPart() as cover:
     finger_inner_edges = cover.edges(select=Select.LAST).filter_by(GeomType.CIRCLE).filter_by(Plane.YZ).sort_by(Axis.X)[1:-1]
     chamfer(finger_inner_edges, length=retaining_nub_chamfer_depth, length2=retaining_nub_chamfer_depth2)
 
-    with Locations(
-        Location(
-            (tray_length/2 + cover_outer_length/2 + cover_grip_dia/2 - cover_grip_depth, tray_width/2, -tray_height + cover_grip_height),
-            (90, 0, 0)
-        ),
-        Location(
-            (tray_length/2 - (cover_outer_length/2 + cover_grip_dia/2 - cover_grip_depth), tray_width/2, -tray_height + cover_grip_height),
-            (90, 0, 0)
-        ),
-    ):
-        Cylinder(cover_grip_dia/2, height=cover_grip_width, mode=Mode.SUBTRACT)
+    with BuildSketch(_plane_width_center) as grip_sketch:
+        with Locations((-cover_tol/2 - cover_wall_thickness, -tray_height + cover_grip_height_pos)):
+            Trapezoid(cover_grip_height, cover_grip_depth, left_side_angle=cover_grip_angle, rotation=-90, align=(Align.CENTER, Align.MIN))
+    grip = extrude(amount=cover_grip_width/2, both=True, mode=Mode.SUBTRACT)
+    mirror(grip, about=_plane_length_center, mode=Mode.SUBTRACT)
 
     with BuildSketch(cover_top, mode=Mode.PRIVATE) as _logo_sketch:
         offset(
