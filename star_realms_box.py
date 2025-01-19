@@ -4,6 +4,7 @@ Fits the Frontiers set and one base set
 """
 
 from build123d import *
+from math import sin, tan, radians
 
 card_tol = 0.1
 
@@ -29,11 +30,6 @@ wall_thickness = 4
 wall_chamfer = 1.5
 
 corner_chamfer = 2
-
-retaining_nub_pos_dia = 3
-retaining_nub_tol = 0.2
-retaining_nub_neg_dia = retaining_nub_pos_dia + retaining_nub_tol
-retaining_nub_height = 14
 
 starting_cards = 10
 starting_thickness = _deck_thickness(starting_cards)
@@ -85,14 +81,32 @@ cover_lip_length = tray_length + 2*cover_wall_thickness + cover_tol
 cover_lip_thickness = 2
 cover_clearance = 1.5
 cover_inner_height = card_height + tray_bottom_thickness - cover_lip_thickness + cover_clearance
+cover_outer_length = tray_length + 2*cover_wall_thickness + cover_tol
 cover_top_chamfer = 2
 cover_finger_dia = 18
+cover_grip_dia = 50
+cover_grip_height = cover_inner_height*0.80
+cover_grip_depth = 0.8
+cover_grip_width = 80
+
+retaining_nub_pos_dia = 1.5
+retaining_nub_tol = 0.1
+retaining_nub_chamfer_angle = 30
+retaining_nub_neg_base_rad = retaining_nub_pos_dia/2/sin(radians(retaining_nub_chamfer_angle))
+retaining_nub_neg_height = min(retaining_nub_pos_dia/2 + retaining_nub_tol, retaining_nub_neg_base_rad*tan(radians(retaining_nub_chamfer_angle)))
+retaining_nub_neg_taper = 90 - retaining_nub_chamfer_angle
+retaining_nub_height = 14
+retaining_nub_chamfer_depth = retaining_nub_pos_dia/2 - cover_tol/2
+retaining_nub_chamfer_depth2 = retaining_nub_chamfer_depth/tan(radians(retaining_nub_chamfer_angle))
 
 logo_orig_thickness = 2
 logo_xy_scale = 0.5
 logo_z_scale = 0.5
 logo_thickness = logo_orig_thickness*logo_z_scale
 logo_tol = 0.1
+
+_plane_length_center = Plane.YZ.offset(tray_length/2)
+_plane_width_center = Plane.XZ.offset(-tray_width/2)
 
 with BuildPart() as tray:
     Box(
@@ -189,16 +203,33 @@ with BuildPart() as cover:
     cover_top = cover.faces().filter_by(Axis.Z).sort_by(Axis.Z, reverse=True)[0]
     chamfer(cover_top.edges(), length=cover_top_chamfer)
 
-    with Locations(
-        Location((tray_length/2, tray_width/2, -tray_height + retaining_nub_height), (0, 90, 0)),
+    with BuildSketch(
+        Location((tray_length, tray_width/2, -tray_height + retaining_nub_height), (0, 90, 0)),
     ):
-        Cylinder(retaining_nub_neg_dia/2, tray_length + retaining_nub_neg_dia, mode=Mode.SUBTRACT)
+        Circle(retaining_nub_neg_base_rad)
+    nub_neg = extrude(amount=retaining_nub_neg_height, taper=retaining_nub_neg_taper, mode=Mode.SUBTRACT)
+    mirror(nub_neg, about=_plane_length_center, mode=Mode.SUBTRACT)
 
     with Locations(
         Location((tray_length/2, tray_width/2, -tray_height + cover_lip_thickness), (90, 0, 0)),
         Location((tray_length/2, tray_width/2, -tray_height + cover_lip_thickness), (0, 90, 0)),
     ):
         Cylinder(cover_finger_dia/2, max(tray_length, tray_width)*2, mode=Mode.SUBTRACT)
+
+    finger_inner_edges = cover.edges(select=Select.LAST).filter_by(GeomType.CIRCLE).filter_by(Plane.YZ).sort_by(Axis.X)[1:-1]
+    chamfer(finger_inner_edges, length=retaining_nub_chamfer_depth, length2=retaining_nub_chamfer_depth2)
+
+    with Locations(
+        Location(
+            (tray_length/2 + cover_outer_length/2 + cover_grip_dia/2 - cover_grip_depth, tray_width/2, -tray_height + cover_grip_height),
+            (90, 0, 0)
+        ),
+        Location(
+            (tray_length/2 - (cover_outer_length/2 + cover_grip_dia/2 - cover_grip_depth), tray_width/2, -tray_height + cover_grip_height),
+            (90, 0, 0)
+        ),
+    ):
+        Cylinder(cover_grip_dia/2, height=cover_grip_width, mode=Mode.SUBTRACT)
 
     with BuildSketch(cover_top, mode=Mode.PRIVATE) as _logo_sketch:
         offset(
