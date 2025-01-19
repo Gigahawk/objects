@@ -11,6 +11,10 @@ _card_width = 68.6
 card_width = _card_width + card_tol
 card_height = 92.7
 card_thickness = 62.7 / (80 + 10 + 16 + 4 + 4)
+card_thickness_tol = 0.5
+
+def _deck_thickness(_cards):
+    return _cards*card_thickness + card_thickness_tol
 
 challenge_card_width = 126
 challenge_card_height = 89
@@ -32,18 +36,18 @@ retaining_nub_neg_dia = retaining_nub_pos_dia + retaining_nub_tol
 retaining_nub_height = 14
 
 starting_cards = 10
-starting_thickness = starting_cards * card_thickness
+starting_thickness = _deck_thickness(starting_cards)
 starting_extra_space = 3
 
 # Cards for Frontiers + base set
 starting_decks = 2 + 4
 score_cards = starting_decks*2
-score_thickness = score_cards * card_thickness
+score_thickness = _deck_thickness(score_cards)
 explorer_cards = 10 + 16
-explorer_thickness = explorer_cards * card_thickness
+explorer_thickness = _deck_thickness(explorer_cards)
 
 trade_cards = 80
-trade_thickness = trade_cards * card_thickness
+trade_thickness = _deck_thickness(trade_cards)
 
 tray_cards_length = (
     wall_thickness
@@ -73,13 +77,13 @@ tray_cards_depth = tray_height - tray_bottom_thickness
 tray_challenge_cards_depth = challenge_card_height/2
 tray_manual_depth = manual_height/2
 
-cover_tol = 0.2
+cover_tol = 0.8
 cover_chamfer_extra_tol = 0.5
 cover_wall_thickness = 2
 cover_lip_width = tray_width + 2*cover_wall_thickness + cover_tol
 cover_lip_length = tray_length + 2*cover_wall_thickness + cover_tol
 cover_lip_thickness = 2
-cover_clearance = 3
+cover_clearance = 1.5
 cover_inner_height = card_height + tray_bottom_thickness - cover_lip_thickness + cover_clearance
 cover_top_chamfer = 2
 cover_finger_dia = 18
