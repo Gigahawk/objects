@@ -6,6 +6,8 @@ Fits the Frontiers set and one base set
 from build123d import *
 from math import sin, tan, radians
 
+_first_layer_height = 0.2
+
 card_tol = 0.1
 
 _card_width = 68.6
@@ -106,6 +108,8 @@ logo_z_scale = 0.5
 logo_thickness = logo_orig_thickness*logo_z_scale
 logo_tol = 0.3
 logo_support_clearance = 0.0
+logo_inner_fill_dia = 86.1*logo_xy_scale
+
 
 _plane_length_center = Plane.YZ.offset(tray_length/2)
 _plane_width_center = Plane.XZ.offset(-tray_width/2)
@@ -272,6 +276,9 @@ _logo = Rot(180, 0, 0) * _logo
 with BuildPart() as logo:
     add(_logo)
     logo_bottom_face = logo.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
+    with BuildSketch(logo_bottom_face) as _logo_bottom_fill:
+        Circle(logo_inner_fill_dia/2)
+    extrude(amount=-_first_layer_height)
     RigidJoint(
         label="logo_bottom_face",
         joint_location=Location(logo_bottom_face.bounding_box().center())
