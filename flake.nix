@@ -87,6 +87,9 @@
           from = pkgs.python3Packages.casadi;
           prev = prev.casadi;
         };
+
+        bd-warehouse = prev.bd-warehouse.overrideAttrs
+          ( old: { buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ]; } );
       };
       pythonSet =
         (pkgs.callPackage pyproject-nix.build.packages {
