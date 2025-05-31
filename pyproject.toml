@@ -1,25 +1,15 @@
-[tool.poetry]
+[project]
 name = "objects"
 version = "0.1.0"
-description = ""
-authors = ["Jasper Chan <jasperchan515@gmail.com>"]
-license = "MIT"
+description = "Add your description here"
 readme = "README.md"
-package-mode = false
+requires-python = ">=3.12"
+dependencies = [
+    "build123d>=0.8.0",
+    "cadquery>=2.5.2",
+    "click>=8.2.1",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-cadquery = {git = "https://github.com/CadQuery/cadquery.git"}
-build123d = "^0.8.0"
-ocp-vscode = "^2.6.0"
-cq-warehouse = {git = "https://github.com/gumyr/cq_warehouse.git"}
-click = "^8.1.7"
-multimethod = "^1.12"
-typish = "^1.9.3"
-nlopt = "^2.9.0"
-casadi = "^3.6.7"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+# https://stackoverflow.com/a/72547402
+[tool.setuptools]
+py-modules = []
