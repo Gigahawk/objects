@@ -89,8 +89,7 @@ _upper_thread = Rotation(0, 0, 180) * IsoThread(
 thread_min_dia = _lower_thread.min_radius*2
 
 
-with BuildPart() as lower:
-    add(_lower_thread)
+with BuildPart() as _lower:
     Cylinder(
         thread_min_dia/2 - thread_interference, thread_depth - thread_tol,
         align=(Align.CENTER, Align.CENTER, Align.MIN)
@@ -99,7 +98,7 @@ with BuildPart() as lower:
         outer_dia/2, lower_unthreaded_height,
         align=(Align.CENTER, Align.CENTER, Align.MAX)
     )
-    bottom_face = lower.faces().sort_by(Axis.Z)[0]
+    bottom_face = _lower.faces().sort_by(Axis.Z)[0]
     bottom_edge = bottom_face.edges()
     chamfer(bottom_edge, end_chamfer)
     with BuildSketch(bottom_face) as keyring_sketch:
@@ -109,7 +108,7 @@ with BuildPart() as lower:
         with Locations((keyring_center_dist, 0)):
             Circle(radius=keyring_inner_dia/2, mode=Mode.SUBTRACT)
     extrude(amount=-keyring_thickness)
-    top_face = lower.faces().sort_by(Axis.Z, reverse=True)[0]
+    top_face = _lower.faces().sort_by(Axis.Z, reverse=True)[0]
     with BuildSketch(top_face):
         RegularPolygon(side_count=8, rotation=360/8/2, radius=face_to_face_dist/2, major_radius=False)
     extrude(amount=-lower_depth, mode=Mode.SUBTRACT)
@@ -117,43 +116,45 @@ with BuildPart() as lower:
         Circle(radius=clearance_hole_dia/2)
     extrude(amount=-lower_unthreaded_height, mode=Mode.SUBTRACT)
 
-    top_face = lower.faces().sort_by(Axis.Z, reverse=True)[0]
+    top_face = _lower.faces().sort_by(Axis.Z, reverse=True)[0]
     with BuildSketch(top_face) as flat_sketch:
         Rectangle(width=1000, height=flat_width)
     extrude(amount=-lower_total_height, mode=Mode.INTERSECT)
 
-with BuildPart() as upper:
-    add(_upper_thread)
+lower = Compound([_lower.part, _lower_thread])
+
+with BuildPart() as _upper:
     with BuildSketch(Plane.XY) as thread_outer_sketch:
         Circle(radius=outer_dia/2)
         Circle(radius=thread_maj_dia/2 + thread_tol, mode=Mode.SUBTRACT)
     extrude(amount=thread_depth + thread_tol)
-    top_face = upper.faces().sort_by(Axis.Z, reverse=True)[0]
+    top_face = _upper.faces().sort_by(Axis.Z, reverse=True)[0]
     with BuildSketch(top_face):
         Circle(radius=outer_dia/2)
         Circle(radius=thread_min_dia/2, mode=Mode.SUBTRACT)
     extrude(amount=upper_internal_height)
-    inner_edge = upper.edges(select=Select.LAST).filter_by(GeomType.CIRCLE).sort_by(SortBy.RADIUS)[:2].sort_by(Axis.Z)[0]
+    inner_edge = _upper.edges(select=Select.LAST).filter_by(GeomType.CIRCLE).sort_by(SortBy.RADIUS)[:2].sort_by(Axis.Z)[0]
     # TODO: update to b3d 0.9
     #chamfer_len1 = max_fillet(inner_edge)
     chamfer_len1 = (thread_maj_dia + thread_tol - thread_min_dia)/2 - 0.01
     #chamfer(inner_edge, 0.45, 3)
     chamfer(inner_edge, chamfer_len1, 3)
-    top_face = upper.faces().sort_by(Axis.Z, reverse=True)[0]
+    top_face = _upper.faces().sort_by(Axis.Z, reverse=True)[0]
     with BuildSketch(top_face):
         Circle(radius=outer_dia/2)
     extrude(amount=end_thickness)
-    top_face = upper.faces().sort_by(Axis.Z, reverse=True)[0]
+    top_face = _upper.faces().sort_by(Axis.Z, reverse=True)[0]
     chamfer(top_face.edges(), end_chamfer)
     with BuildSketch(top_face):
         Rectangle(width=1000, height=flat_width)
     extrude(amount=-upper_total_height, mode=Mode.INTERSECT)
+upper = Compound([_upper.part, _upper_thread])
     
     
 
 results = {
-    "lower": lower.part,
-    "upper": upper.part
+    "lower": lower,
+    "upper": upper,
 }
 
 if __name__ == "__main__":
