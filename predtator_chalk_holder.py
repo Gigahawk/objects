@@ -6,7 +6,7 @@ from math import sin, cos, radians, tan
 
 
 
-outer_dia = 35
+outer_dia = 37
 thread_min_dia = 28.5
 thread_maj_dia = 30
 thread_pitch = 2
@@ -15,11 +15,11 @@ thread_depth = 4
 thread_tip_width = 0.2
 # Must be non zero to avoid weird OCP issues
 thread_interference = 0.0001
-thread_compliment_rotation = 180 + 20  # Extra to ensure faces line up
+thread_compliment_rotation = 180 + 22.5  # Extra to ensure faces line up when threads are tight
 
-bottom_thickness = 3
+bottom_thickness = 6
 top_thickness = 1
-end_chamfer = 1
+end_chamfer = 2
 lower_depth = 6.5
 face_to_face_dist = 24.678
 clearance_hole_dia = 20
@@ -65,7 +65,7 @@ _lower_thread = Thread(
     length=thread_depth,
     end_finishes=["fade","fade"]
 )
-_upper_thread = Rotation(0, 0, 180 + 20) * Thread(
+_upper_thread = Rotation(0, 0, thread_compliment_rotation) * Thread(
     apex_radius=thread_min_dia/2 + thread_tol,
     apex_width=thread_tip_width,
     root_radius=thread_maj_dia/2 + thread_tol,
