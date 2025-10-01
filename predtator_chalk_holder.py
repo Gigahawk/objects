@@ -3,7 +3,6 @@
 from build123d import *
 from bd_warehouse.thread import Thread
 
-# from bd_warehouse.thread import IsoThread
 from math import sin, cos, radians, tan
 
 
@@ -14,11 +13,9 @@ thread_pitch = 2
 thread_tol = 0.1
 thread_depth = 4
 thread_tip_width = 0.2
-# Must be non zero to avoid weird OCP issues
-thread_interference = 0.0001
 thread_compliment_rotation = (
-    180 + 22.5
-)  # Extra to ensure faces line up when threads are tight
+    180 + 22.5  # Extra to ensure faces line up when threads are tight
+)
 
 bottom_thickness = 6
 top_thickness = 1
@@ -63,7 +60,7 @@ _lower_thread = Thread(
     root_width=thread_root_width,
     pitch=thread_pitch,
     length=thread_depth,
-    end_finishes=["fade", "fade"],
+    end_finishes=("fade", "fade"),
 )
 _upper_thread = Rotation(0, 0, thread_compliment_rotation) * Thread(
     apex_radius=thread_min_dia / 2 + thread_tol,
@@ -72,30 +69,13 @@ _upper_thread = Rotation(0, 0, thread_compliment_rotation) * Thread(
     root_width=thread_root_width,
     pitch=thread_pitch,
     length=thread_depth,
-    end_finishes=["fade", "fade"],
+    end_finishes=("fade", "fade"),
 )
-
-# _lower_thread = IsoThread(
-#    major_diameter=thread_maj_dia - thread_tol,
-#    pitch=thread_pitch,
-#    length=thread_depth,
-#    external=True,
-#    end_finishes=["fade","fade"]
-# )
-# _upper_thread = Rotation(0, 0, 180) * IsoThread(
-#    major_diameter=thread_maj_dia + thread_tol,
-#    pitch=thread_pitch,
-#    length=thread_depth,
-#    external=False,
-#    interference=0,
-#    end_finishes=["fade","fade"]
-# )
-# thread_min_dia = _lower_thread.min_radius*2
 
 
 with BuildPart() as _lower:
     Cylinder(
-        thread_min_dia / 2 - thread_interference,
+        thread_min_dia / 2,
         thread_depth - thread_tol,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
     )
@@ -192,6 +172,7 @@ with BuildPart() as _finger_indents:
 
     tangent_plane = Plane.XZ.offset(finger_indent_depth)
     sketch_wire = _finger_indent_sketch.sketch.wire()
+    assert sketch_wire is not None
     sketch_edges = _finger_indent_sketch.sketch.edges().sort_by(sketch_wire)
     sketch_points = _finger_indent_sketch.sketch.vertices().sort_by(sketch_wire)
     sketch_points1 = sketch_points[: len(sketch_points) // 2]
@@ -202,14 +183,14 @@ with BuildPart() as _finger_indents:
         raise ValueError("Expected an even number of points for finger indent")
     faces = ShapeList()
     for idx in range(len(sketch_points1)):
-        p1 = sketch_points1[idx]
-        p2 = sketch_points2[idx]
+        p1 = sketch_points1[idx].center()
+        p2 = sketch_points2[idx].center()
         try:
-            p1n = sketch_points1[idx + 1]
-            p2n = sketch_points2[idx + 1]
+            p1n = sketch_points1[idx + 1].center()
+            p2n = sketch_points2[idx + 1].center()
         except IndexError:
-            p1n = sketch_points2[0]
-            p2n = sketch_points1[0]
+            p1n = sketch_points2[0].center()
+            p2n = sketch_points1[0].center()
 
         _cross_arc = ThreePointArc(p1, center_point, p2, mode=Mode.PRIVATE)
         _cross_arc_n = ThreePointArc(p1n, center_point, p2n, mode=Mode.PRIVATE)
@@ -223,7 +204,7 @@ with BuildPart() as _finger_indents:
             arc2 = TangentArc([center_point, p2], tangent=_cross_arc % 0.5)
             arc2n = TangentArc([center_point, p2n], tangent=_cross_arc_n % 0.5)
         faces.append(Face.make_surface(finger_indent_lines2.wire()))
-    finger_indent_tool = Solid(Shell(faces + [_finger_indent_sketch.sketch]))
+    finger_indent_tool = Solid(Shell(faces + ShapeList([_finger_indent_sketch.sketch])))
     with PolarLocations(radius=flat_width / 2, count=8):
         add(finger_indent_tool.rotate(Axis.Z, 90))
 
