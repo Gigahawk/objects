@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 import shutil
 from importlib import import_module
+import json
 
 import cadquery as cq
 from cadquery import exporters
@@ -185,7 +186,14 @@ def _do_export(module, path):
 @click.option(
     "-j", "--jobs", "jobs", default=0, help="Number of jobs to run in parallel"
 )
-def main(files, jobs):
+@click.option(
+    "--matrix", is_flag=True,
+    help=(
+        "Don't export objects, just output a JSON file for ingesting as a "
+        "GitHub Actions matrix"
+    )
+)
+def main(files, jobs, matrix):
     print("Cleaning export folder")
     if files:
         files = [Path(f) for f in files]
@@ -204,6 +212,12 @@ def main(files, jobs):
             continue
         module = ".".join(path.with_suffix("").parts)
         export_args.append((module, path))
+    if matrix:
+        print(f"Exporting manifest")
+        manifest = [f"{module}|{str(path)}" for module, path in export_args]
+        with open("manifest.json", "w") as f:
+            f.write(json.dumps(manifest))
+        return 0
     if jobs > 1:
         print(f"Exporting with pool size {jobs}")
         with multiprocessing.Pool(jobs) as p:
