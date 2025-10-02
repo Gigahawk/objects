@@ -6,13 +6,63 @@ on:
 
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      manifest: ${{ steps.manifest.outputs.manifest }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
+
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v26
+
+      - name: Restore and cache Nix store
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: cache-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
+          restore-prefixes-first-match: cache-${{ runner.os }}-nix-store-
+
+      - name: Create a custom shell for devenv
+        shell: bash
+        run: |
+          mkdir -p $HOME/.local/bin
+          echo "#!/usr/bin/env bash" > $HOME/.local/bin/devenv
+          echo "nix develop --command bash \"\$1\"" >> $HOME/.local/bin/devenv
+          chmod +x $HOME/.local/bin/devenv
+
+      - name: Export manifest
+        shell: devenv {0}
+        run: python export.py --matrix
+
+      - run: cat manifest.json
+      
+      - name: Save manifest to output
+        id: manifest
+        run: |
+          echo "manifest=$(cat manifest.json)" >> $GITHUB_OUTPUT
+
+  build-matrix:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module_path: ${{ fromJSON(needs.prepare.outputs.manifest) }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      
+      - name: Split module/path into separate variables
+        run: |
+          MODULE_PATH="${{ matrix.module_path }}"
+          echo "MODULE=$(cut -d'|' -f1 <<<$MODULE_PATH)" >> $GITHUB_ENV
+          echo "OBJ_PATH=$(cut -d'|' -f2 <<<$MODULE_PATH)" >> $GITHUB_ENV
 
       - name: Cache date
         run: echo "DATE=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
@@ -27,7 +77,8 @@ jobs:
         run: echo "BUILD_COMMIT=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
 
       - name: Generate output name
-        run: echo "NAME=${BUILD_DATE}_${BUILD_BRANCH}_${BUILD_COMMIT}_object_bin" >> $GITHUB_ENV
+        run: |
+          echo "NAME=${BUILD_DATE}_${BUILD_BRANCH}_${BUILD_COMMIT}_object_${MODULE}_bin" >> $GITHUB_ENV
 
       - name: Install Nix
         uses: nixbuild/nix-quick-install-action@v26
@@ -48,7 +99,7 @@ jobs:
 
       - name: Export parts
         shell: devenv {0}
-        run: python export.py
+        run: python export.py -f $OBJ_PATH
 
       - name: Archive objects
         # Skip archive if running on act
