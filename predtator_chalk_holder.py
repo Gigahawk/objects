@@ -26,7 +26,6 @@ face_to_face_dist = 24.678
 clearance_hole_dia = 20
 total_internal_height = 22
 finger_indent_depth = 1
-# TODO: refactor to allow this to be smaller than keyring_thickness
 finger_indent_margin = 1.5
 
 keyring_outer_dia = 7
@@ -72,7 +71,7 @@ _upper_thread = Rotation(0, 0, thread_compliment_rotation) * Thread(
     end_finishes=("fade", "fade"),
 )
 
-#finger_indents = False
+#finger_indents = True
 def build(finger_indents: bool = True):
     with BuildPart() as _lower_base:
         Cylinder(
@@ -142,11 +141,12 @@ def build(finger_indents: bool = True):
 
 
     if finger_indents:
-        with BuildPart() as _finger_indents:
+        with BuildPart() as _finger_indent_tool:
             with BuildSketch(Plane.XZ) as _finger_indent_sketch:
                 add(upper_side_face)
                 add(lower_side_face)
                 offset(amount=-finger_indent_margin)
+            #extrude(amount=1)  # Attempt to fix broken step export (doesn't seem to work)
             bbox = Compound([_finger_indent_sketch.sketch]).bounding_box()
             bbox_w, _, bbox_h = bbox.max - bbox.min
             center_z = bbox.min.Z + bbox_h / 2
@@ -186,9 +186,12 @@ def build(finger_indents: bool = True):
                     arc2 = TangentArc([center_point, p2], tangent=_cross_arc % 0.5)
                     arc2n = TangentArc([center_point, p2n], tangent=_cross_arc_n % 0.5)
                 faces.append(Face.make_surface(finger_indent_lines2.wire()))
-            finger_indent_tool = Solid(Shell(faces + ShapeList([_finger_indent_sketch.sketch])))
-            with PolarLocations(radius=flat_width / 2, count=8):
-                add(finger_indent_tool.rotate(Axis.Z, 90))
+            add(Solid(Shell(faces + ShapeList([_finger_indent_sketch.sketch]))))
+
+        with BuildPart() as _finger_indents:
+            # HACK: Extra offset is required for STEP export to not be broken
+            with PolarLocations(radius=flat_width / 2 + 0.0001, count=8):
+                add(_finger_indent_tool.part.rotate(Axis.Z, 90))
 
         with BuildPart() as _lower_finger_indents:
             add(_lower_base)
@@ -199,6 +202,7 @@ def build(finger_indents: bool = True):
             add(_upper_base)
             add(_finger_indents, mode=Mode.SUBTRACT)
         _upper_base = _upper_finger_indents
+
     with BuildPart() as _lower:
         add(_lower_base)
         top_face = _lower.faces().sort_by(Axis.Z, reverse=True)[0]
