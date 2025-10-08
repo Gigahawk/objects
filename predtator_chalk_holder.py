@@ -14,7 +14,7 @@ thread_tol = 0.1
 thread_depth = 4
 thread_tip_width = 0.2
 thread_compliment_rotation = (
-    180 + 22.5  # Extra to ensure faces line up when threads are tight
+    180 + 20  # Extra to ensure faces line up when threads are tight
 )
 
 bottom_thickness = 6
@@ -28,8 +28,8 @@ total_internal_height = 22
 finger_indent_depth = 1
 finger_indent_margin = 1.5
 
-keyring_outer_dia = 7
-keyring_inner_dia = 5
+keyring_outer_dia = 8
+keyring_inner_dia = 4.5
 keyring_angle = 40  # Angle between tangent lines from keyring
 keyring_center_dist = 20
 keyring_thickness = 3
