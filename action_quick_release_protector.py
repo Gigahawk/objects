@@ -32,7 +32,7 @@ lead_in_dia_tol = 0.2
 lead_in_dia = _lead_in_dia + lead_in_dia_tol
 lead_in_chamfer_depth = 4
 
-top_thickness = 6
+top_thickness = 15
 top_loft_chamfer_inset = 1.5
 top_loft_chamfer_angle = 60
 top_secondary_chamfer_len = 1
@@ -45,6 +45,18 @@ total_length = (
 
 top_chamfer_loft_top_dia = outer_dia - 2*top_loft_chamfer_inset
 top_chamfer_loft_bot_dia = top_chamfer_loft_top_dia + 2*(total_length/tan(radians(top_loft_chamfer_angle)))
+
+# OrcaSlicer fork provides a brick layers option with overextrusion for better strength.
+# This seems to screw up the internal dimensions.
+# Compensating for 1.1 flow ratio on even loops
+#brick_layers_comp = 0.4  # seems to be fine straight off the build plate but a little too tight after washing?
+brick_layers_comp = 0.6
+shoulder_dia += brick_layers_comp
+thread_maj_dia += brick_layers_comp
+thread_min_dia += brick_layers_comp
+lead_in_dia += brick_layers_comp
+
+
 
 _female_thread = Thread(
     apex_radius=thread_min_dia/2 + thread_tol,
@@ -72,7 +84,7 @@ with BuildPart() as female:
     with BuildSketch(top_face):
         Circle(outer_dia/2)
         Circle(lead_in_dia/2, mode=Mode.SUBTRACT)
-    extrude(amount=lead_in_length)
+    extrude(amount=lead_in_length - lead_in_dia/2)
     inner_edge = (
         female.edges().filter_by(GeomType.CIRCLE)
         .sort_by(lambda x: x.radius)[:2]
@@ -89,7 +101,10 @@ with BuildPart() as female:
     top_face = female.faces().sort_by(Axis.Z)[-1]
     with BuildSketch(top_face):
         Circle(outer_dia/2)
-    extrude(amount=top_thickness)
+    extrude(amount=top_thickness + lead_in_dia/2)
+    with Locations((0, 0, top_face.center().Z)):
+        Sphere(radius=lead_in_dia/2, mode=Mode.SUBTRACT)
+
 
     top_face = female.faces().sort_by(Axis.Z)[-1]
     bot_face = female.faces().sort_by(Axis.Z)[0]
