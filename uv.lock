@@ -113,8 +113,8 @@ wheels = [
 
 [[package]]
 name = "bd-warehouse"
-version = "0.1.dev179+g928834f18"
-source = { git = "https://github.com/gumyr/bd_warehouse#928834f1884cba646c7c9f0ba423b9ae9fc27d4f" }
+version = "0.1.dev180+g97112a02d"
+source = { git = "https://github.com/gumyr/bd_warehouse#97112a02d9538d57740a005a7802dd149d797568" }
 dependencies = [
     { name = "build123d" },
     { name = "typing-extensions" },
