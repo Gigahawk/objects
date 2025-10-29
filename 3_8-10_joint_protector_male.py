@@ -7,7 +7,7 @@ from math import tan, radians
 
 # McMaster model has origin at center of all axes, head is at positive Z.
 # Reorient to have the mating side of the head at origin facing positive Z.
-_screw = import_step("res/91292A034_18-8_Stainless_Steel_Socket_Head_Screw.step")
+_screw = import_step("res/91292A837_18-8_Stainless_Steel_Socket_Head_Screw.step")
 _cyl_faces = _screw.faces().filter_by(GeomType.CYLINDER).sort_by(lambda x: x.radius, reverse=True)
 _head = _cyl_faces[0]
 head_radius = _head.radius
@@ -27,10 +27,10 @@ screw_rad_tol = 0.1
 screw_head_extra = 0.2
 screw_tip_tol = 0.5
 
-nut_height = 27
+nut_height = 37
 
 ## McMaster model has origin at center of all axes, aligned to Y axis
-_nut = import_step("res/97258A121_18-8_Stainless_Steel_Thin_Square_Nut.step")
+_nut = import_step("res/97258A122_18-8_Stainless_Steel_Thin_Square_Nut.step")
 # Rotate to align with Z axis
 _nut = _nut.rotate(Axis.X, -90)
 _nut_side_face = _nut.faces().filter_by(GeomType.PLANE).filter_by(Axis.X).sort_by(Axis.X)[0]
@@ -100,9 +100,9 @@ with BuildPart() as male:
     with BuildSketch():
         Circle(head_radius + screw_rad_tol)
     extrude(amount=-(head_height + screw_head_extra), mode=Mode.SUBTRACT)
-    #bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
-    #print(f"bottom_fillet: {bottom_fillet}")
-    bottom_fillet = 1.2816310716202821
+    bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
+    print(f"bottom_fillet: {bottom_fillet}")
+    #bottom_fillet = 1.2816310716202821
     fillet(objects=bottom_edge, radius=bottom_fillet)
 
     # Threaded portion
@@ -223,9 +223,9 @@ with BuildPart() as male:
     top_edge = protection_edges.sort_by(Axis.Z, reverse=True)[0]
     bot_edge = protection_edges.sort_by(Axis.Z)[0]
     bot_chamfer = (protection_ring_dia - outer_dia) / 2
-    #top_chamfer1 = male.part.max_fillet([top_edge], max_iterations=100)
-    #print(f"top_chamfer1: {top_chamfer1}")
-    top_chamfer1 = 1.0320913209618903
+    top_chamfer1 = male.part.max_fillet([top_edge], max_iterations=100)
+    print(f"top_chamfer1: {top_chamfer1}")
+    #top_chamfer1 = 1.0320913209618903
     chamfer(
         objects=bot_edge,
         length=bot_chamfer,
