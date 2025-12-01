@@ -23,7 +23,7 @@ _screw.move(Location(-_base_pos))
 _screw = _screw.rotate(Axis.X, 180)
 _screw_tip_pos = _screw.faces().filter_by(GeomType.PLANE).sort_by(Axis.Z)[-1].center().Z
 
-screw_rad_tol = 0.1
+screw_rad_tol = 0.175
 screw_head_extra = 0.2
 screw_tip_tol = 0.5
 
@@ -42,8 +42,8 @@ _nut.move(Location(-_nut_bottom_face.center()))
 # Move to targeted height
 _nut.move(Location(Vector(0, 0, nut_height)))
 
-nut_width_tol = 0.2
-nut_thickness_tol = 0.1
+nut_width_tol = 0.225
+nut_thickness_tol = 0.2
 
 outer_dia = 20.8
 
@@ -100,9 +100,9 @@ with BuildPart() as male:
     with BuildSketch():
         Circle(head_radius + screw_rad_tol)
     extrude(amount=-(head_height + screw_head_extra), mode=Mode.SUBTRACT)
-    bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
-    print(f"bottom_fillet: {bottom_fillet}")
-    #bottom_fillet = 1.2816310716202821
+    #bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
+    #print(f"bottom_fillet: {bottom_fillet}")
+    bottom_fillet = 0.8381599042601434
     fillet(objects=bottom_edge, radius=bottom_fillet)
 
     # Threaded portion
@@ -223,9 +223,9 @@ with BuildPart() as male:
     top_edge = protection_edges.sort_by(Axis.Z, reverse=True)[0]
     bot_edge = protection_edges.sort_by(Axis.Z)[0]
     bot_chamfer = (protection_ring_dia - outer_dia) / 2
-    top_chamfer1 = male.part.max_fillet([top_edge], max_iterations=100)
-    print(f"top_chamfer1: {top_chamfer1}")
-    #top_chamfer1 = 1.0320913209618903
+    #top_chamfer1 = male.part.max_fillet([top_edge], max_iterations=100)
+    #print(f"top_chamfer1: {top_chamfer1}")
+    top_chamfer1 = 1.0968892834428599
     chamfer(
         objects=bot_edge,
         length=bot_chamfer,

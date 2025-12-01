@@ -23,7 +23,7 @@ _screw.move(Location(-_base_pos))
 _screw = _screw.rotate(Axis.X, 180)
 _screw_tip_pos = _screw.faces().filter_by(GeomType.PLANE).sort_by(Axis.Z)[-1].center().Z
 
-screw_rad_tol = 0.1
+screw_rad_tol = 0.175
 screw_head_extra = 0.2
 screw_tip_tol = 0.5
 
@@ -42,8 +42,8 @@ _nut.move(Location(-_nut_bottom_face.center()))
 # Move to targeted height
 _nut.move(Location(Vector(0, 0, nut_height)))
 
-nut_width_tol = 0.2
-nut_thickness_tol = 0.1
+nut_width_tol = 0.225
+nut_thickness_tol = 0.2
 
 outer_dia = 21.5
 
@@ -116,7 +116,7 @@ with BuildPart() as male:
     extrude(amount=-(head_height + screw_head_extra), mode=Mode.SUBTRACT)
     #bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
     #print(f"bottom_fillet: {bottom_fillet}")
-    bottom_fillet = 0.9939773011714809
+    bottom_fillet = 0.9222962457985375
     fillet(objects=bottom_edge, radius=bottom_fillet)
 
     # Threaded portion
