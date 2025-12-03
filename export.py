@@ -212,6 +212,8 @@ def main(files, jobs, matrix):
             continue
         module = ".".join(path.with_suffix("").parts)
         export_args.append((module, path))
+    # Don't allocate more jobs pool than we actually have
+    jobs = min(jobs, len(export_args))
     if matrix:
         print(f"Exporting manifest")
         manifest = [f"{module}|{str(path)}" for module, path in export_args]
