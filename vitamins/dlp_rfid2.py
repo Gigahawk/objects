@@ -57,6 +57,10 @@ with BuildPart() as _out:
                 Circle(radius=pin_hole_dia/2)
     extrude(amount=pcb_thickness, mode=Mode.SUBTRACT)
 
+    RigidJoint(label="center", joint_location=Location((pcb_width/2, -pcb_height/2, 0)))
+
+out = _out.part
+out.color = Color("green")
 
 
 if __name__ == "__main__":
@@ -65,6 +69,7 @@ if __name__ == "__main__":
 
         show_all(
             reset_camera=Camera.KEEP,
+            render_joints=True,
         )
     except ImportError:
         pass

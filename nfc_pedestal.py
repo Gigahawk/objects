@@ -1,15 +1,60 @@
+import copy
+
 from build123d import *
 
 from vitamins import dlp_rfid2
 from vitamins import adafruit_4090_usb_c_breakout as usb_breakout
+from vitamins import nut_m2_5_square as nut
+from vitamins import screw_socket_m2_5_40 as pole_screw
 
-topsheet_thickness = 0.4
-base_width = 60
-base_top_thickness = 3
+layer_height = 0.2
+
+# First layer is always 0.2
+topsheet_thickness = 0.2 + layer_height
+base_width = 71
+base_top_thickness = 6
 base_fillet = 10
 
+skirt_wall_thickness = 2
+skirt_depth = 1
+skirt_gap = 4
+skirt_tol = 0.1
+
+screw_hole_dist = 57
+# TODO: pull in from vitamin?
+screw_hole_thread_dia = pole_screw.shank_radius * 2 + 0.1
+screw_counter_bore_radius=pole_screw.head_radius * 2 + 0.1
+screw_counter_bore_depth=pole_screw.head_height + 0.1
+screw_hole_bottom_height = 1
+
 pcb_xy_tol = 0.2
-dlp_offset = 5
+dlp_offset = 10
+usb_conn_wall_thickness = 0.8
+usb_conn_center_offset = 15
+usb_conn_tol = 0.2
+usb_cc_tol = 0.4
+
+base_mid_nut_height = 2
+nut_width_tol = 0.2
+nut_thickness_tol = 0.2
+
+# TODO: find actual height from pokeball
+pole_hook_height = 60
+pole_hook_inner_dia = 5
+pole_hook_thickness = 2
+pole_thickness = 7
+pole_width = 7
+pole_height = pole_hook_height + pole_hook_inner_dia + pole_thickness/2
+pole_fillet_rad = 10
+pole_mount_offset = 27
+pole_tol = 0.1
+pole_mount_depth = 4
+pole_nut_height = 27
+
+
+_usb_breakout = copy.copy(usb_breakout.out)
+_dlp_rfid2 = copy.copy(dlp_rfid2.out)
+_pole_screw = copy.copy(pole_screw.out)
 
 with BuildPart() as base_top:
     with BuildSketch() as base_outer_sketch:
@@ -19,20 +64,286 @@ with BuildPart() as base_top:
 
     bot_face = base_top.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
 
-    with BuildSketch(bot_face) as dlp_cutout_sketch:
+    with BuildSketch() as dlp_cutout_sketch:
         with Locations((dlp_offset, 0)):
-            # TODO: offset
-            Rectangle(dlp_rfid2.pcb_width, dlp_rfid2.pcb_height)
+            Rectangle(dlp_rfid2.pcb_width + pcb_xy_tol, dlp_rfid2.pcb_height + pcb_xy_tol)
+        dlp_wiring_edge = dlp_cutout_sketch.sketch.edges().filter_by(Axis.Y).sort_by(Axis.X)[0]
     extrude(dlp_cutout_sketch.sketch, amount=-base_top_thickness, mode=Mode.SUBTRACT)
 
-    with BuildSketch(bot_face) as usb_breakout_sketch:
-        # TODO: offset
+    usb_breakout_zero = (
+        -base_width/2 + usb_conn_wall_thickness + usb_breakout.pcb_height, 
+        usb_conn_center_offset + usb_breakout.pcb_width/2,
+        0
+    )
+
+    with BuildSketch() as usb_breakout_sketch:
+        with Locations(usb_breakout_zero):
+            # Offset after to keep mount hole positions correct
+            outline = Rectangle(
+                usb_breakout.pcb_height,
+                usb_breakout.pcb_width,
+                align=Align.MAX
+            )
+        # Don't fillet the corner near VBUS/GND
+        no_fillet_point = outline.vertices().sort_by(Axis.X, reverse=True)[0:2].sort_by(Axis.Y)[0]
+        fillet_points = outline.vertices()
+        fillet_points.remove(no_fillet_point)
+        fillet(fillet_points, radius=usb_breakout.pcb_fillet_rad)
+
+        offset(amount=pcb_xy_tol/2, kind=Kind.INTERSECTION, mode=Mode.REPLACE)
+        usb_wiring_edge = usb_breakout_sketch.sketch.edges().filter_by(Axis.Y).sort_by(Axis.X)[-1]
+
+    extrude(usb_breakout_sketch.sketch, amount=-base_top_thickness, mode=Mode.SUBTRACT)
+
+    with BuildSketch() as usb_mount_hole_sketch:
+        with Locations(usb_breakout_zero):
+            with Locations(*((-c.Y, -c.X) for c in (h.arc_center for h in usb_breakout.mount_holes))):
+                Circle(usb_breakout.mount_hole_rad - pcb_xy_tol/2)
+    extrude(usb_mount_hole_sketch.sketch, amount=-usb_breakout.nom_pcb_thickness)
+    
+    with BuildSketch() as wiring_sketch:
         with BuildLine():
-            add(usb_breakout.outline)
+            wiring_outline = Polyline([
+                dlp_wiring_edge @ 1,
+                # Need access to pins 4-7 for PWR/GND
+                dlp_wiring_edge @ (1 - (4/7 + 0.1)),  
+                usb_wiring_edge @ 0,
+                # Arbitrary, only need access to last two pins, give extra space for ease of soldering
+                usb_wiring_edge @ 0.4,  
+            ], close=True)
         make_face()
-    #extrude(usb_breakout_sketch.sketch, amount=-base_top_thickness, mode=Mode.SUBTRACT)
+    extrude(wiring_sketch.sketch, amount=-base_top_thickness, mode=Mode.SUBTRACT)
+
+    with BuildSketch(Plane.XY.offset(-usb_breakout.nom_pcb_thickness)) as usb_conn_hole_sketch:
+        with Locations(usb_breakout_zero):
+            with Locations((-usb_breakout.pcb_height/2, 0)):
+                Rectangle(
+                    usb_breakout.pcb_height,
+                    usb_breakout.pcb_width,
+                    align=Align.MAX
+                )
+        offset(amount=pcb_xy_tol/2, kind=Kind.INTERSECTION, mode=Mode.REPLACE)
+    extrude(usb_conn_hole_sketch.sketch, amount=-base_top_thickness, mode=Mode.SUBTRACT)
+
+    with BuildSketch(bot_face) as skirt_sketch:
+        add(bot_face)
+        offset(amount=-skirt_wall_thickness, mode=Mode.REPLACE)
+    extrude(skirt_sketch.sketch, amount=-skirt_depth, mode=Mode.SUBTRACT)
+
+    with GridLocations(
+        x_spacing=screw_hole_dist,
+        y_spacing=screw_hole_dist,
+        x_count=2,
+        y_count=2,
+        align=Align.CENTER,
+    ):
+        screw_hole = CounterBoreHole(
+            radius=screw_hole_thread_dia / 2, 
+            depth = base_top_thickness + topsheet_thickness,
+            counter_bore_radius=screw_counter_bore_radius / 2,
+            counter_bore_depth=screw_counter_bore_depth,
+        )
+    
+    with BuildSketch() as pole_mount_pocket:
+        with Locations(( -pole_mount_offset, 0)):
+            Rectangle(
+                pole_thickness + pole_tol,
+                pole_width + pole_tol,
+                align=Align.CENTER
+            )
+    extrude(
+        pole_mount_pocket.sketch,
+        amount=pole_mount_depth,
+        # Set both to punch through top sheet
+        both=True,
+        mode=Mode.SUBTRACT
+    )
+    with Locations((-pole_mount_offset, 0)):
+        Hole(
+            radius=screw_hole_thread_dia / 2,
+            depth=base_top_thickness
+        )
+
+    RigidJoint(label="usb_breakout_corner", joint_location=Location(usb_breakout_zero, (180, 0, 90)))
+    RigidJoint(label="dlp_center", joint_location=Location((dlp_offset, 0, 0), (180, 0, 0)))
+    RigidJoint(label="base_top_center", joint_location=Location((0, 0, -base_top_thickness + skirt_depth)))
 
 
+base_top.part.joints["usb_breakout_corner"].connect_to(_usb_breakout.joints["corner"])
+base_top.part.joints["dlp_center"].connect_to(_dlp_rfid2.joints["center"])
+
+with BuildPart() as base_mid:
+    with BuildSketch() as skirt_insert_sketch:
+        add(skirt_sketch.sketch)
+        offset(amount=-skirt_tol/2, mode=Mode.REPLACE)
+    extrude(skirt_insert_sketch.sketch, amount=-(skirt_depth + skirt_gap))
+
+    RigidJoint(label="base_mid_center", joint_location=Location((0, 0, 0)))
+
+    with BuildSketch(Plane.XY.offset(-skirt_depth)) as usb_clamp_sketch:
+        add(bot_face)
+        _usb_conn_hole_rect = add(usb_conn_hole_sketch.sketch, mode=Mode.PRIVATE)
+        _usb_breakout_rect = add(usb_breakout_sketch.sketch, mode=Mode.PRIVATE)
+        with Locations(usb_breakout_zero):
+            with Locations((0, -usb_breakout.pcb_width)):
+                _pin_clearance_rect = Rectangle(
+                    # HACK: idk this probably shouldn't be hardcoded
+                    4,
+                    usb_wiring_edge.length * 0.4,
+                    align=(Align.MAX, Align.MIN),
+                    mode=Mode.PRIVATE,
+                )
+        offset(
+            _usb_conn_hole_rect + _usb_breakout_rect - _pin_clearance_rect,
+            amount=-skirt_tol/2,
+            mode=Mode.INTERSECT
+        )
+
+        with Locations(usb_breakout_zero):
+            cc_bbox = usb_breakout.resistor_bbox
+            cc_center = cc_bbox.center()
+            with Locations((-cc_center.Y, -cc_center.X)):
+                Rectangle(
+                    cc_bbox.size.Y + usb_cc_tol,
+                    cc_bbox.size.X + usb_cc_tol,
+                    mode=Mode.SUBTRACT
+                )
+
+    # TODO: figure out dist?
+    extrude(usb_clamp_sketch.sketch, amount=base_top_thickness - usb_breakout.nom_pcb_thickness)
+
+    with BuildSketch(Plane.YZ.offset(-base_width/2)) as usb_cutout_sketch:
+        with Locations((usb_conn_center_offset, base_top_thickness - skirt_depth - usb_breakout.nom_pcb_thickness)):
+            Rectangle(
+                usb_breakout.usb_width + usb_conn_tol,
+                usb_breakout.usb_height + usb_conn_tol,
+                align=(Align.CENTER, Align.MAX),
+            )
+        # Broken by https://github.com/gumyr/build123d/issues/314
+        fillet_points = usb_cutout_sketch.sketch_local.vertices().sort_by(Axis.Y)[0:2]
+        fillet(fillet_points, radius=usb_breakout.usb_fillet_rad)
+    extrude(
+        usb_cutout_sketch.sketch,
+        amount=usb_breakout.usb_depth + usb_conn_wall_thickness + usb_conn_tol,
+        mode=Mode.SUBTRACT
+    )
+
+    with BuildSketch() as dlp_clamp_sketch:
+        _dlp_sketch = add(dlp_cutout_sketch.sketch, mode=Mode.PRIVATE)
+        offset(_dlp_sketch, amount=-skirt_tol/2, mode=Mode.REPLACE)
+    extrude(
+        dlp_clamp_sketch.sketch,
+        amount=base_top_thickness - skirt_depth - dlp_rfid2.module_total_thickness,
+    )
+
+    with GridLocations(
+        x_spacing=screw_hole_dist,
+        y_spacing=screw_hole_dist,
+        x_count=2,
+        y_count=2,
+        align=Align.CENTER,
+    ):
+        screw_hole = Hole(
+            radius=screw_hole_thread_dia / 2, 
+            depth=skirt_depth + skirt_gap - screw_hole_bottom_height,
+        )
+
+        with Locations((0, 0, -(skirt_depth + skirt_gap) + base_mid_nut_height)):
+            Box(
+                nut.nut_width + nut_width_tol,
+                nut.nut_width + nut_width_tol,
+                nut.nut_thickness + nut_thickness_tol,
+                rotation=(0, 0, 45),
+                mode=Mode.SUBTRACT,
+                align=(Align.CENTER, Align.CENTER, Align.MIN)
+            )
+            # Extra cuts to ensure better bridges
+            Box(
+                nut.nut_width + nut_width_tol,
+                screw_hole_thread_dia,
+                nut.nut_thickness + nut_thickness_tol + layer_height,
+                rotation=(0, 0, 45),
+                mode=Mode.SUBTRACT,
+                align=(Align.CENTER, Align.CENTER, Align.MIN)
+            )
+            Box(
+                screw_hole_thread_dia,
+                screw_hole_thread_dia,
+                nut.nut_thickness + nut_thickness_tol + 2*layer_height,
+                rotation=(0, 0, 45),
+                mode=Mode.SUBTRACT,
+                align=(Align.CENTER, Align.CENTER, Align.MIN)
+            )
+    base_mid_bot = base_mid.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
+    pole_hole_point = Location(
+        base_mid_bot.center() + Vector(-pole_mount_offset, 0, 0),
+        (180, 0, 0)
+    )
+    with Locations(pole_hole_point):
+        pole_mont_cbore = CounterBoreHole(
+            radius=screw_hole_thread_dia / 2,
+            depth=10,
+            counter_bore_radius=screw_counter_bore_radius / 2,
+            counter_bore_depth=screw_counter_bore_depth,
+        )
+    pole_cbore_point = Location(
+        base_mid_bot.center() + Vector(-pole_mount_offset, 0, screw_counter_bore_depth),
+    )
+    
+    RigidJoint(label="pole_screw_hole", joint_location=pole_cbore_point)
+            
+base_top.part.joints["base_top_center"].connect_to(base_mid.joints["base_mid_center"])
+base_mid.part.joints["pole_screw_hole"].connect_to(_pole_screw.joints["head_bottom"])
+
+with BuildPart() as pole:
+    hook_point = Vector(dlp_offset, 0, pole_hook_height)
+    with BuildLine() as pole_path:
+        Polyline(
+            [
+                (-pole_mount_offset, 0, -pole_mount_depth),
+                (-pole_mount_offset, 0, pole_height),
+                (dlp_offset + pole_hook_inner_dia/2, 0, pole_height),
+            ],
+        )
+        _pole_fillet_corner = (
+            pole_path.vertices()
+            .sort_by(Axis.Z, reverse=True)[0:2]
+            .sort_by(Axis.X)
+        )[0]
+        fillet(_pole_fillet_corner, radius=pole_fillet_rad)
+    with BuildSketch() as pole_profile:
+        with Locations((-pole_mount_offset, 0)):
+            Rectangle(pole_thickness, pole_width, align=Align.CENTER)
+    sweep(sections=pole_profile.sketch, path=pole_path.line)
+
+    with BuildSketch(Plane.XZ) as hook_sketch:
+        with Locations((dlp_offset, pole_hook_height + pole_hook_inner_dia/2)):
+            Circle(pole_hook_inner_dia / 2 + pole_hook_thickness)
+            Circle(pole_hook_inner_dia / 2, mode=Mode.SUBTRACT)
+    extrude(amount=pole_hook_thickness/2, both=True)
+
+    pole_bot_face = pole.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
+    with BuildSketch(pole_bot_face) as pole_mount_hole_sketch:
+        Circle(screw_hole_thread_dia / 2)
+    extrude(
+        pole_mount_hole_sketch.sketch,
+        amount=-10, mode=Mode.SUBTRACT
+    )
+
+    with Locations((-pole_mount_offset, 0, pole_nut_height)):
+        _pole_nut_hole = Box(
+            nut.nut_width + nut_width_tol,
+            nut.nut_width + nut_width_tol,
+            nut.nut_thickness + nut_thickness_tol,
+            mode=Mode.SUBTRACT,
+            align=(Align.CENTER, Align.CENTER, Align.MIN)
+        )
+
+results = {
+    "base_top": base_top.part,
+    "base_mid": base_mid.part,
+    "pole": pole.part,
+}
 
 
 if __name__ == "__main__":
@@ -41,6 +352,7 @@ if __name__ == "__main__":
 
         show_all(
             reset_camera=Camera.KEEP,
+            render_joints=True,
         )
     except ImportError:
         pass
