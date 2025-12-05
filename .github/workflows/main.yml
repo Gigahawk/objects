@@ -123,3 +123,29 @@ jobs:
 
       - run: tree
 
+      - run: |
+          set -euo pipefail
+
+          EXPORT_DIR="export"
+          mkdir -p "$EXPORT_DIR"
+
+          # Match directories starting with 4 digits (year) + dash
+          for d in [0-9][0-9][0-9][0-9]-*; do
+              # Skip non-directories or if no match
+              [ -d "$d" ] || continue
+
+              echo "Processing: $d"
+
+              # Merge directory contents into export/
+              rsync -av --remove-source-files "$d"/ "$EXPORT_DIR"/
+
+              # Clean up empty dirs inside the source directory
+              find "$d" -type d -empty -delete
+          done
+
+          echo "Done."
+
+      - run: tree
+
+
+
