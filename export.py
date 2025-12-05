@@ -9,6 +9,7 @@ import json
 import cadquery as cq
 from cadquery import exporters
 from build123d import Mesher, export_step, export_brep, ShapeList, Compound
+import jinja2
 
 
 export_types = [
@@ -193,17 +194,18 @@ def _do_export(module, path):
         "GitHub Actions matrix"
     )
 )
-def main(files, jobs, matrix):
-    print("Cleaning export folder")
+@click.option(
+    "--template", is_flag=True,
+    help=(
+        "Don't export objects, just output a HTML file GitHub Pages"
+    )
+)
+def main(files, jobs, matrix, template):
     if files:
         files = [Path(f) for f in files]
     else:
         files = Path(".").glob("**/*.py")
-    try:
-        shutil.rmtree("export")
-    except FileNotFoundError:
-        pass
-    os.makedirs("export")
+
     if jobs <= 0:
         jobs = multiprocessing.cpu_count()
     export_args = []
@@ -217,14 +219,34 @@ def main(files, jobs, matrix):
             continue
         module = ".".join(path.with_suffix("").parts)
         export_args.append((module, path))
-    # Don't allocate more jobs pool than we actually have
-    jobs = min(jobs, len(export_args))
     if matrix:
-        print(f"Exporting manifest")
+        print("Exporting manifest")
         manifest = [f"{module}|{str(path)}" for module, path in export_args]
         with open("manifest.json", "w") as f:
             f.write(json.dumps(manifest))
         return 0
+    
+    if template:
+        print("Exporting HTML index")
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader("./"))
+        template = env.get_template("template.html")
+        content = template.render(
+            models=export_args
+        )
+        with open("index.html", mode="w", encoding="utf-8") as f:
+            f.write(content)
+        return 0
+
+    print("Cleaning export folder")
+    try:
+        shutil.rmtree("export")
+    except FileNotFoundError:
+        pass
+    os.makedirs("export")
+
+    # Don't allocate more jobs pool than we actually have
+    jobs = min(jobs, len(export_args))
+
     if jobs > 1:
         print(f"Exporting with pool size {jobs}")
         with multiprocessing.Pool(jobs) as p:
