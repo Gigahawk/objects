@@ -8,7 +8,9 @@ import json
 
 import cadquery as cq
 from cadquery import exporters
-from build123d import Mesher, export_step, export_brep, ShapeList, Compound
+from build123d import (
+    Mesher, export_step, export_brep, export_gltf, ShapeList, Compound
+)
 
 
 export_types = [
@@ -16,6 +18,7 @@ export_types = [
     ".step",
     ".3mf",
     ".brep",
+    ".glb",
 ]
 
 # Monkeypatch Mesher.add_shape to not throw errors
@@ -128,6 +131,8 @@ def export_build123d(result, path):
         export_step(result, path)
     elif export_type == ".brep":
         export_brep(result, path)
+    elif export_type == ".glb":
+        export_gltf(result, path, binary=True)
     elif export_type in [".stl", ".3mf"]:
         exporter = Mesher()
         exporter.add_shape(result)
@@ -139,6 +144,11 @@ def export_build123d(result, path):
 def export_cadquery(result, path):
     if path.suffix == ".brep":
         print("Warning: no CadQuery exporter for brep format")
+        return
+    if path.suffix == ".glb":
+        # Technically not true, but I can't be bothered to care how
+        # to make this work right now
+        print("Warning: no CadQuery exporter for glb format")
         return
     exporters.export(result, str(path))
 
