@@ -121,3 +121,5 @@ jobs:
 
       - run: ls $GITHUB_WORKSPACE
 
+      - run: tree
+
