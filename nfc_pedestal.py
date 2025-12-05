@@ -381,12 +381,13 @@ with BuildPart() as pole:
 _pole_nut = copy.copy(nut.out)
 pole.part.joints["pole_nut"].connect_to(_pole_nut.joints["bottom"])
 
+asm = Compound([base_top.part, base_mid.part, pole.part])
     
-
 results = {
     "base_top": base_top.part,
     "base_mid": base_mid.part,
     "pole": pole.part,
+    "asm": asm,
 }
 
 
