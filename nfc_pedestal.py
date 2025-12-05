@@ -6,6 +6,7 @@ from vitamins import dlp_rfid2
 from vitamins import adafruit_4090_usb_c_breakout as usb_breakout
 from vitamins import nut_m2_5_square as nut
 from vitamins import screw_socket_m2_5_40 as pole_screw
+from vitamins import screw_socket_m2_5_06 as base_screw
 
 layer_height = 0.2
 
@@ -15,7 +16,7 @@ base_width = 71
 base_top_thickness = 6
 base_fillet = 10
 
-skirt_wall_thickness = 2
+skirt_wall_thickness = 1
 skirt_depth = 1
 skirt_gap = 4
 skirt_tol = 0.1
@@ -39,13 +40,13 @@ nut_width_tol = 0.2
 nut_thickness_tol = 0.2
 
 # TODO: find actual height from pokeball
-pole_hook_height = 60
+pole_hook_height = 130
 pole_hook_inner_dia = 5
 pole_hook_thickness = 2
 pole_thickness = 7
 pole_width = 7
 pole_height = pole_hook_height + pole_hook_inner_dia + pole_thickness/2
-pole_fillet_rad = 10
+pole_fillet_rad = 30
 pole_mount_offset = 27
 pole_tol = 0.1
 pole_mount_depth = 4
@@ -137,12 +138,13 @@ with BuildPart() as base_top:
         y_count=2,
         align=Align.CENTER,
     ):
-        screw_hole = CounterBoreHole(
-            radius=screw_hole_thread_dia / 2, 
-            depth = base_top_thickness + topsheet_thickness,
-            counter_bore_radius=screw_counter_bore_radius / 2,
-            counter_bore_depth=screw_counter_bore_depth,
-        )
+        with Locations((0, 0, topsheet_thickness)):
+            screw_hole = CounterBoreHole(
+                radius=screw_hole_thread_dia / 2, 
+                depth = base_top_thickness + topsheet_thickness,
+                counter_bore_radius=screw_counter_bore_radius / 2,
+                counter_bore_depth=screw_counter_bore_depth,
+            )
     
     with BuildSketch() as pole_mount_pocket:
         with Locations(( -pole_mount_offset, 0)):
@@ -164,6 +166,17 @@ with BuildPart() as base_top:
             depth=base_top_thickness
         )
 
+    with Locations((0, 0, -screw_counter_bore_depth + topsheet_thickness)):
+        for idx, gl in enumerate(GridLocations(
+            x_spacing=screw_hole_dist,
+            y_spacing=screw_hole_dist,
+            x_count=2,
+            y_count=2,
+            align=Align.CENTER,
+        )):
+            gl.orientation = Vector(180, 0, 0)
+            RigidJoint(label=f"base_screw{idx}", joint_location=gl)
+
     RigidJoint(label="usb_breakout_corner", joint_location=Location(usb_breakout_zero, (180, 0, 90)))
     RigidJoint(label="dlp_center", joint_location=Location((dlp_offset, 0, 0), (180, 0, 0)))
     RigidJoint(label="base_top_center", joint_location=Location((0, 0, -base_top_thickness + skirt_depth)))
@@ -171,6 +184,12 @@ with BuildPart() as base_top:
 
 base_top.part.joints["usb_breakout_corner"].connect_to(_usb_breakout.joints["corner"])
 base_top.part.joints["dlp_center"].connect_to(_dlp_rfid2.joints["center"])
+base_screws = {}
+for idx in range(4):
+    key = f"base_screw{idx}"
+    base_screws[key] = copy.copy(base_screw.out)
+    base_top.part.joints[key].connect_to(base_screws[key].joints["head_bottom"])
+
 
 with BuildPart() as base_mid:
     with BuildSketch() as skirt_insert_sketch:
@@ -274,6 +293,7 @@ with BuildPart() as base_mid:
                 mode=Mode.SUBTRACT,
                 align=(Align.CENTER, Align.CENTER, Align.MIN)
             )
+
     base_mid_bot = base_mid.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
     pole_hole_point = Location(
         base_mid_bot.center() + Vector(-pole_mount_offset, 0, 0),
@@ -289,11 +309,28 @@ with BuildPart() as base_mid:
     pole_cbore_point = Location(
         base_mid_bot.center() + Vector(-pole_mount_offset, 0, screw_counter_bore_depth),
     )
+
+    with Locations((0, 0, -(skirt_depth + skirt_gap) + base_mid_nut_height)):
+        for idx, gl in enumerate(GridLocations(
+            x_spacing=screw_hole_dist,
+            y_spacing=screw_hole_dist,
+            x_count=2,
+            y_count=2,
+            align=Align.CENTER,
+        )):
+            gl.orientation = Vector(0, 0, 45)
+            RigidJoint(label=f"base_nut{idx}", joint_location=gl)
     
     RigidJoint(label="pole_screw_hole", joint_location=pole_cbore_point)
             
 base_top.part.joints["base_top_center"].connect_to(base_mid.joints["base_mid_center"])
 base_mid.part.joints["pole_screw_hole"].connect_to(_pole_screw.joints["head_bottom"])
+
+base_nuts = {}
+for idx in range(4):
+    key = f"base_nut{idx}"
+    base_nuts[key] = copy.copy(nut.out)
+    base_mid.part.joints[key].connect_to(base_nuts[key].joints["bottom"])
 
 with BuildPart() as pole:
     hook_point = Vector(dlp_offset, 0, pole_hook_height)
@@ -330,7 +367,8 @@ with BuildPart() as pole:
         amount=-10, mode=Mode.SUBTRACT
     )
 
-    with Locations((-pole_mount_offset, 0, pole_nut_height)):
+    _pole_nut_loc = Location((-pole_mount_offset, 0, pole_nut_height))
+    with Locations(_pole_nut_loc):
         _pole_nut_hole = Box(
             nut.nut_width + nut_width_tol,
             nut.nut_width + nut_width_tol,
@@ -338,6 +376,12 @@ with BuildPart() as pole:
             mode=Mode.SUBTRACT,
             align=(Align.CENTER, Align.CENTER, Align.MIN)
         )
+        RigidJoint(label="pole_nut", joint_location=_pole_nut_loc)
+
+_pole_nut = copy.copy(nut.out)
+pole.part.joints["pole_nut"].connect_to(_pole_nut.joints["bottom"])
+
+    
 
 results = {
     "base_top": base_top.part,
