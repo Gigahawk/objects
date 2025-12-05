@@ -208,7 +208,12 @@ def main(files, jobs, matrix):
         jobs = multiprocessing.cpu_count()
     export_args = []
     for path in files:
-        if path.suffix != ".py" or path.stem == "export" or str(path).startswith("."):
+        if (
+            path.suffix != ".py"
+            or path.stem == "export"
+            or str(path).startswith(".")
+            or "vitamins" in str(path)
+        ):
             continue
         module = ".".join(path.with_suffix("").parts)
         export_args.append((module, path))
