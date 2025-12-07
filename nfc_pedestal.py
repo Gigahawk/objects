@@ -364,7 +364,9 @@ with BuildPart() as pole:
         Circle(screw_hole_thread_dia / 2)
     extrude(
         pole_mount_hole_sketch.sketch,
-        amount=-10, mode=Mode.SUBTRACT
+        # Technically overkill but whatever
+        amount=-pole_screw.length,
+        mode=Mode.SUBTRACT
     )
 
     _pole_nut_loc = Location((-pole_mount_offset, 0, pole_nut_height))

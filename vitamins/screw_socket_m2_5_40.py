@@ -26,7 +26,7 @@ _base_pos = _shank.edges().filter_by(GeomType.CIRCLE).sort_by(Axis.Z)[-1].arc_ce
 _screw.move(Location(-_base_pos))
 # Rotate screw to point up. Why is there move/moved but not rotate/rotated?
 _screw = _screw.rotate(Axis.X, 180)
-_screw_tip_pos = _screw.faces().filter_by(GeomType.PLANE).sort_by(Axis.Z)[-1].center().Z
+length = _screw.faces().filter_by(GeomType.PLANE).sort_by(Axis.Z)[-1].center().Z
 
 out = _screw
 
