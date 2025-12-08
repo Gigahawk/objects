@@ -15,6 +15,9 @@ hinge_length_actual = hinge_length_total - hinge_gap
 
 assert cone_tip_dia > 0
 assert hinge_length_total > 0
+assert hinge_internal_sections % 2 == 1
+assert cone_depth < hinge_end_width
+assert hinge_gap > 0
 
 
 
@@ -58,9 +61,59 @@ with BuildPart() as _hinge:
         x_count=hinge_internal_sections,
         y_count=1,
         align=(Align.MIN, Align.CENTER)
-    ):
+    ) as _internal_hinge_locations:
         with Locations((hinge_end_width + hinge_gap, 0, 0)):
             add(_internal_hinge_section)
+    
+    with BuildPart(mode=Mode.PRIVATE) as gap_cutout_parent:
+        Cylinder(
+            radius=(hinge_dia/2), height=hinge_width,
+            rotation=(0, 90, 0),
+            align=(Align.CENTER, Align.CENTER, Align.MIN)
+        )
+        for idx, l in enumerate(_internal_hinge_locations):
+            if idx % 2 == 0:
+                with Locations(l):
+                    with Locations((hinge_end_width, 0, 0)):
+                        Cylinder(
+                            radius=(hinge_dia/2 + hinge_gap),
+                            height=hinge_length_total + hinge_gap,
+                            rotation=(0, 90, 0),
+                            align=(Align.CENTER, Align.CENTER, Align.MIN)
+                        )
+    with BuildPart(mode=Mode.PRIVATE) as gap_cutout_child:
+        Cylinder(
+            radius=(hinge_dia/2), height=hinge_width,
+            rotation=(0, 90, 0),
+            align=(Align.CENTER, Align.CENTER, Align.MIN)
+        )
+        _end_cap_cutout = Cylinder(
+            radius=hinge_dia/2 + hinge_gap,
+            height=hinge_end_width + hinge_gap, rotation=(0, 90, 0),
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+            mode=Mode.PRIVATE
+        )
+        with Locations(end_cap_locations[0]):
+            add(_end_cap_cutout)
+        with Locations(end_cap_locations[1]):
+            with Locations((-hinge_gap, 0, 0)):
+                add(_end_cap_cutout)
+        
+            
+        for idx, l in enumerate(_internal_hinge_locations):
+            if idx % 2 == 1:
+                with Locations(l):
+                    with Locations((hinge_end_width, 0, 0)):
+                        Cylinder(
+                            radius=(hinge_dia/2 + hinge_gap),
+                            height=hinge_length_total + hinge_gap,
+                            rotation=(0, 90, 0),
+                            align=(Align.CENTER, Align.CENTER, Align.MIN)
+                        )
+
+_hinge_parts = _hinge.part.solids().sort_by(Axis.X)
+hinge_parent = [p for idx, p in enumerate(_hinge_parts) if idx % 2 == 0]
+hinge_child = [p for idx, p in enumerate(_hinge_parts) if idx % 2 == 1]
         
 
     
