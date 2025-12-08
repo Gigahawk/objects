@@ -8,7 +8,8 @@ from build123d import *
 #hinge_cone_angle=40
 #cone_depth=3
 #hinge_gap=0.3
-#overhang_comp=0.3
+##overhang_comp=0.3
+#hinge_join_gap=0.5
 
 def build(
     hinge_dia=10,
@@ -18,7 +19,8 @@ def build(
     hinge_cone_angle=40,
     cone_depth=3,
     hinge_gap=0.3,
-    overhang_comp=0.3,
+    #overhang_comp=0.3,
+    hinge_join_gap=0.8,
 ):
     cone_tip_dia = hinge_dia - 2*(cone_depth / tan(radians(hinge_cone_angle)))
     hinge_length_total = (hinge_width - 2*hinge_end_width - hinge_gap)/hinge_internal_sections
@@ -33,21 +35,22 @@ def build(
     def get_hinge_cutout_stock(cutout_length):
         with BuildPart() as _hinge_cutout_stock:
             with BuildSketch(Plane.YZ) as hinge_cutout_profile:
-                with BuildLine():
-                    CenterArc(
-                        center=(0, 0, 0),
-                        radius=hinge_dia/2 + hinge_gap,
-                        start_angle=0,
-                        arc_size=180,
-                    )
-                    EllipticalCenterArc(
-                        center=(0, 0, 0),
-                        x_radius=hinge_dia/2 + hinge_gap,
-                        y_radius=hinge_dia/2 + hinge_gap + overhang_comp,
-                        start_angle=180,
-                        end_angle=360,
-                    )
-                make_face()
+                #with BuildLine():
+                #    CenterArc(
+                #        center=(0, 0, 0),
+                #        radius=hinge_dia/2 + hinge_gap,
+                #        start_angle=0,
+                #        arc_size=180,
+                #    )
+                #    EllipticalCenterArc(
+                #        center=(0, 0, 0),
+                #        x_radius=hinge_dia/2 + hinge_gap,
+                #        y_radius=hinge_dia/2 + hinge_gap + overhang_comp,
+                #        start_angle=180,
+                #        end_angle=360,
+                #    )
+                #make_face()
+                Circle(radius=hinge_dia/2 + hinge_join_gap)
             extrude(amount=cutout_length)
         return _hinge_cutout_stock.part
 
