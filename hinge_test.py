@@ -5,14 +5,17 @@ from vitamins import hinge
 hinge_gap = 0.3
 hinge_width = 50
 hinge_dia = 10
+hinge_overhang_comp = 0.3
 
 clamshell_thickness = 6
-clamshell_length = 30
+clamshell_length = 15
 
 
 _hinge = hinge.build(
-    hinge_dia=hinge_dia,hinge_width=hinge_width,
-    hinge_gap=hinge_gap
+    hinge_dia=hinge_dia,
+    hinge_width=hinge_width,
+    hinge_gap=hinge_gap,
+    overhang_comp=hinge_overhang_comp,
 )
 
 hinge_center_loc = Vector(-hinge_width/2, 0, clamshell_thickness)
