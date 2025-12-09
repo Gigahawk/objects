@@ -22,7 +22,6 @@ skirt_gap = 4
 skirt_tol = 0.1
 
 screw_hole_dist = 57
-# TODO: pull in from vitamin?
 screw_hole_thread_dia = pole_screw.shank_radius * 2 + 0.1
 screw_counter_bore_radius=pole_screw.head_radius * 2 + 0.1
 screw_counter_bore_depth=pole_screw.head_height + 0.1
@@ -40,7 +39,7 @@ nut_width_tol = 0.2
 nut_thickness_tol = 0.2
 
 # TODO: find actual height from pokeball
-pole_hook_height = 130
+pole_hook_height = 135
 pole_hook_inner_dia = 5
 pole_hook_thickness = 2
 pole_thickness = 7
