@@ -141,12 +141,12 @@ jobs:
           echo "nix develop .#mako --command bash \"\$1\"" >> $HOME/.local/bin/devenv
           chmod +x $HOME/.local/bin/devenv
 
-      - run: find .out -type f -printf '%P\n'
+      - run: find .out -type f -printf '%P\n' | sort
 
       - name: Build template
         shell: devenv {0}
         run: |
-          mako-render template.html.mako --var "models=$(find .out -type f -printf '%P\n')" > .out/index.html
+          mako-render template.html.mako --var "models=$(find .out -type f -printf '%P\n' | sort)" > .out/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
