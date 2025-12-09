@@ -64,6 +64,11 @@
       text-decoration: underline;
     }
   </style>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 
 <body>
@@ -80,15 +85,10 @@
     <a id="built-from" href="https://github.com/Gigahawk/objects/commit/${gitsha}">Built from commit ${gitsha[0:7]}</a>
   </div>
 
-  <iframe src="https://gigahawk.github.io/Online3DViewer/website/" title="description"></iframe> 
+  <iframe id="viewer" src="https://gigahawk.github.io/Online3DViewer/website/" title="description"></iframe> 
 
   <script>
-    (function() {
-      var select = document.getElementById('model');
-      var frame = document.querySelector('iframe');
-      var downloadLink = document.getElementById('download');
-
-      if (!select || !frame || !downloadLink) return;
+    $(document).ready(function() {
 
       function objectUrlFor(modelPath) {
         return 'https://gigahawk.github.io/objects/' + modelPath;
@@ -103,29 +103,30 @@
 
       }
 
+      $('#model').select2();
 
-      function updateAll() {
-        var val = select.value || '';
-        frame.src = viewerUrlFor(val);
-        var objUrl = objectUrlFor(val);
-        downloadLink.href = objUrl;
+      function updateAll(e) {
+        console.log(e);
+        var val = $("#model").val();
+        console.log("Setting target model to " + val);
+        $("#viewer").attr('src', viewerUrlFor(val));
+        $("#download").attr('href', objectUrlFor(val));
         // Use the last segment as filename if possible
         try {
           var parts = val.split('/');
           var filename = parts[parts.length - 1] || 'download';
-          downloadLink.setAttribute('download', filename);
-          downloadLink.removeAttribute('aria-disabled');
+          $("#download").attr('download', filename);
+          $("#download").removeAttr('aria-disabled');
         } catch (e) {
-          downloadLink.setAttribute('aria-disabled', 'true');
+          $("#download").attr('aria-disabled', 'true');
         }
       }
 
-      select.addEventListener('change', updateAll);
+      $('#model').on("change", updateAll);
 
-      document.addEventListener('DOMContentLoaded', function() {
-        updateAll();
-      });
-    })();
+      updateAll();
+
+    });
   </script>
 
 </body>
