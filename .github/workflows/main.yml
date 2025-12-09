@@ -141,6 +141,8 @@ jobs:
           echo "nix develop .#mako --command bash \"\$1\"" >> $HOME/.local/bin/devenv
           chmod +x $HOME/.local/bin/devenv
 
+      - run: find .out -type f -printf '%P\n'
+
       - name: Build template
         shell: devenv {0}
         run: |
