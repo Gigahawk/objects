@@ -115,19 +115,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v5
         with:
           merge-multiple: true
-
-      - run: ls
-
-      - run: ls $GITHUB_WORKSPACE
+          path: .out
 
       - run: tree
 
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v26
+
+      - name: Restore and cache Nix store
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: cache-mako-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
+          restore-prefixes-first-match: cache-mako-${{ runner.os }}-nix-store-
+
+      - name: Create a custom shell for devenv
+        shell: bash
+        run: |
+          mkdir -p $HOME/.local/bin
+          echo "#!/usr/bin/env bash" > $HOME/.local/bin/devenv
+          echo "nix develop .#mako --command bash \"\$1\"" >> $HOME/.local/bin/devenv
+          chmod +x $HOME/.local/bin/devenv
+
+      - name: Build template
+        shell: devenv {0}
+        run: |
+          mako-render template.html.mako --var "models=$(find .out -type f -printf '%P\n')" > .out/index.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./
+          path: ./.out
   
   deploy-web:
     environment:

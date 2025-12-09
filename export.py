@@ -9,7 +9,6 @@ import json
 import cadquery as cq
 from cadquery import exporters
 from build123d import Mesher, export_step, export_brep, ShapeList, Compound
-import jinja2
 
 
 export_types = [
@@ -194,13 +193,7 @@ def _do_export(module, path):
         "GitHub Actions matrix"
     )
 )
-@click.option(
-    "--template", is_flag=True,
-    help=(
-        "Don't export objects, just output a HTML file GitHub Pages"
-    )
-)
-def main(files, jobs, matrix, template):
+def main(files, jobs, matrix):
     if files:
         files = [Path(f) for f in files]
     else:
@@ -226,17 +219,6 @@ def main(files, jobs, matrix, template):
             f.write(json.dumps(manifest))
         return 0
     
-    if template:
-        print("Exporting HTML index")
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader("./"))
-        template = env.get_template("template.html")
-        content = template.render(
-            models=export_args
-        )
-        with open("index.html", mode="w", encoding="utf-8") as f:
-            f.write(content)
-        return 0
-
     print("Cleaning export folder")
     try:
         shutil.rmtree("export")

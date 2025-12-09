@@ -161,6 +161,11 @@
             python
           ];
         };
+        devShells.mako = pkgs.mkShell {
+          packages = [
+            pkgs.python3Packages.mako
+          ];
+        };
       }
     );
 }
