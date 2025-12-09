@@ -19,7 +19,7 @@
 
     /* Keep the select at its natural height and let the iframe fill the rest */
     #model {
-      margin: 12px;
+      margin: 0;
       max-width: 100%;
     }
 
@@ -29,37 +29,87 @@
       border: 0;
       display: block;
     }
+
+    /* Controls container for select + download button */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    #download {
+      display: inline-block;
+      padding: 6px 10px;
+      background: #0078d4;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    #download[aria-disabled="true"] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
   </style>
 </head>
 
 <body>
-  <select name="model" id="model">
-  % for model in models.splitlines():
-    <option value="${model}">${model}</option>
-  % endfor
-  </select>
+  <!-- controls: select + download button -->
+  <div class="controls">
+    <select name="model" id="model">
+    % for model in models.splitlines():
+      <option value="${model}">${model}</option>
+    % endfor
+    </select>
+
+    <a id="download" href="#" download>Download</a>
+  </div>
 
   <iframe src="https://gigahawk.github.io/Online3DViewer/website/" title="description"></iframe> 
 
   <script>
-    // Update iframe src when the select changes and initialize on DOM ready
     (function() {
       var select = document.getElementById('model');
       var frame = document.querySelector('iframe');
+      var downloadLink = document.getElementById('download');
 
-      if (!select || !frame) return;
+      if (!select || !frame || !downloadLink) return;
 
-      function updateFrame() {
-        // If value is a relative/path or full URL, it will be used as-is.
-        frame.src = 'https://gigahawk.github.io/Online3DViewer/website/#model=https://gigahawk.github.io/objects/' + select.value;
+      function objectUrlFor(modelPath) {
+        return 'https://gigahawk.github.io/objects/' + modelPath;
       }
 
-      // Update on change
-      select.addEventListener('change', updateFrame);
+      function viewerUrlFor(modelPath) {
+        // viewer expects a full URL after "model=" in the hash
+        var objUrl = objectUrlFor(modelPath);
+        // Suprisingly you cannot encode the url in the model param
+        //return 'https://gigahawk.github.io/Online3DViewer/website/#model=' + encodeURIComponent(objUrl);
+        return 'https://gigahawk.github.io/Online3DViewer/website/#model=' + objUrl;
 
-      // Initialize iframe to current selection on load
+      }
+
+
+      function updateAll() {
+        var val = select.value || '';
+        frame.src = viewerUrlFor(val);
+        var objUrl = objectUrlFor(val);
+        downloadLink.href = objUrl;
+        // Use the last segment as filename if possible
+        try {
+          var parts = val.split('/');
+          var filename = parts[parts.length - 1] || 'download';
+          downloadLink.setAttribute('download', filename);
+          downloadLink.removeAttribute('aria-disabled');
+        } catch (e) {
+          downloadLink.setAttribute('aria-disabled', 'true');
+        }
+      }
+
+      select.addEventListener('change', updateAll);
+
       document.addEventListener('DOMContentLoaded', function() {
-        updateFrame();
+        updateAll();
       });
     })();
   </script>
