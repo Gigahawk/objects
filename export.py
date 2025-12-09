@@ -194,16 +194,11 @@ def _do_export(module, path):
     )
 )
 def main(files, jobs, matrix):
-    print("Cleaning export folder")
     if files:
         files = [Path(f) for f in files]
     else:
         files = Path(".").glob("**/*.py")
-    try:
-        shutil.rmtree("export")
-    except FileNotFoundError:
-        pass
-    os.makedirs("export")
+
     if jobs <= 0:
         jobs = multiprocessing.cpu_count()
     export_args = []
@@ -217,14 +212,23 @@ def main(files, jobs, matrix):
             continue
         module = ".".join(path.with_suffix("").parts)
         export_args.append((module, path))
-    # Don't allocate more jobs pool than we actually have
-    jobs = min(jobs, len(export_args))
     if matrix:
-        print(f"Exporting manifest")
+        print("Exporting manifest")
         manifest = [f"{module}|{str(path)}" for module, path in export_args]
         with open("manifest.json", "w") as f:
             f.write(json.dumps(manifest))
         return 0
+    
+    print("Cleaning export folder")
+    try:
+        shutil.rmtree("export")
+    except FileNotFoundError:
+        pass
+    os.makedirs("export")
+
+    # Don't allocate more jobs pool than we actually have
+    jobs = min(jobs, len(export_args))
+
     if jobs > 1:
         print(f"Exporting with pool size {jobs}")
         with multiprocessing.Pool(jobs) as p:
