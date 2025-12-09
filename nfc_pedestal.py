@@ -12,7 +12,7 @@ layer_height = 0.2
 
 # First layer is always 0.2
 topsheet_thickness = 0.2 + layer_height
-base_width = 71
+base_width = 70
 base_top_thickness = 6
 base_fillet = 10
 
@@ -20,12 +20,15 @@ skirt_wall_thickness = 1
 skirt_depth = 1
 skirt_gap = 4
 skirt_tol = 0.1
+base_mid_thickness = skirt_gap + skirt_depth
 
-screw_hole_dist = 57
+screw_hole_dist_x = 54
+screw_hole_dist_y = 58
+
 screw_hole_thread_dia = pole_screw.shank_radius * 2 + 0.1
 screw_counter_bore_radius=pole_screw.head_radius * 2 + 0.1
 screw_counter_bore_depth=pole_screw.head_height + 0.1
-screw_hole_bottom_height = 1
+screw_hole_end_ofst_from_surface = 1
 
 pcb_xy_tol = 0.2
 dlp_offset = 10
@@ -34,9 +37,15 @@ usb_conn_center_offset = 15
 usb_conn_tol = 0.2
 usb_cc_tol = 0.4
 
-base_mid_nut_height = 2
+nut_ofst_from_surface = 2
 nut_width_tol = 0.2
 nut_thickness_tol = 0.2
+_nut_cutout = nut.build_cutout(
+    width_tol=nut_width_tol,
+    thickness_tol=nut_thickness_tol,
+    layer_height=layer_height,
+    bridge_helper_hole_dia=screw_hole_thread_dia,
+)
 
 # TODO: find actual height from pokeball
 pole_hook_height = 135
@@ -55,6 +64,14 @@ pole_nut_height = 27
 _usb_breakout = copy.copy(usb_breakout.out)
 _dlp_rfid2 = copy.copy(dlp_rfid2.out)
 _pole_screw = copy.copy(pole_screw.out)
+
+_screw_hole_grid_locs = GridLocations(
+    x_spacing=screw_hole_dist_x,
+    y_spacing=screw_hole_dist_y,
+    x_count=2,
+    y_count=2,
+    align=Align.CENTER,
+)
 
 with BuildPart() as base_top:
     with BuildSketch() as base_outer_sketch:
@@ -130,20 +147,28 @@ with BuildPart() as base_top:
         offset(amount=-skirt_wall_thickness, mode=Mode.REPLACE)
     extrude(skirt_sketch.sketch, amount=-skirt_depth, mode=Mode.SUBTRACT)
 
-    with GridLocations(
-        x_spacing=screw_hole_dist,
-        y_spacing=screw_hole_dist,
-        x_count=2,
-        y_count=2,
-        align=Align.CENTER,
-    ):
-        with Locations((0, 0, topsheet_thickness)):
-            screw_hole = CounterBoreHole(
-                radius=screw_hole_thread_dia / 2, 
-                depth = base_top_thickness + topsheet_thickness,
-                counter_bore_radius=screw_counter_bore_radius / 2,
-                counter_bore_depth=screw_counter_bore_depth,
+    with _screw_hole_grid_locs:
+        _screw_tip_loc = Location(
+            (0, 0, topsheet_thickness - screw_hole_end_ofst_from_surface),
+            (180, 0, 0)
+        )
+        with Locations(_screw_tip_loc):
+            Cylinder(
+                radius=screw_hole_thread_dia / 2,
+                height=base_top_thickness,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+                mode=Mode.SUBTRACT
             )
+            with Locations(
+                (0, 0, nut_ofst_from_surface - screw_hole_end_ofst_from_surface)
+            ):
+                add(_nut_cutout, mode=Mode.SUBTRACT)
+        #    screw_hole = CounterBoreHole(
+        #        radius=screw_hole_thread_dia / 2, 
+        #        depth = base_top_thickness + topsheet_thickness,
+        #        counter_bore_radius=screw_counter_bore_radius / 2,
+        #        counter_bore_depth=screw_counter_bore_depth,
+        #    )
     
     with BuildSketch() as pole_mount_pocket:
         with Locations(( -pole_mount_offset, 0)):
@@ -165,16 +190,10 @@ with BuildPart() as base_top:
             depth=base_top_thickness
         )
 
-    with Locations((0, 0, -screw_counter_bore_depth + topsheet_thickness)):
-        for idx, gl in enumerate(GridLocations(
-            x_spacing=screw_hole_dist,
-            y_spacing=screw_hole_dist,
-            x_count=2,
-            y_count=2,
-            align=Align.CENTER,
-        )):
-            gl.orientation = Vector(180, 0, 0)
-            RigidJoint(label=f"base_screw{idx}", joint_location=gl)
+    for idx, gl in enumerate(_screw_hole_grid_locs):
+        gl.orientation = Vector(180, 0, 0)
+        gl.position += Vector(0, 0, -nut_ofst_from_surface + topsheet_thickness)
+        RigidJoint(label=f"base_nut{idx}", joint_location=gl)
 
     RigidJoint(label="usb_breakout_corner", joint_location=Location(usb_breakout_zero, (180, 0, 90)))
     RigidJoint(label="dlp_center", joint_location=Location((dlp_offset, 0, 0), (180, 0, 0)))
@@ -183,18 +202,18 @@ with BuildPart() as base_top:
 
 base_top.part.joints["usb_breakout_corner"].connect_to(_usb_breakout.joints["corner"])
 base_top.part.joints["dlp_center"].connect_to(_dlp_rfid2.joints["center"])
-base_screws = {}
+base_nuts = {}
 for idx in range(4):
-    key = f"base_screw{idx}"
-    base_screws[key] = copy.copy(base_screw.out)
-    base_top.part.joints[key].connect_to(base_screws[key].joints["head_bottom"])
+    key = f"base_nut{idx}"
+    base_nuts[key] = copy.copy(nut.out)
+    base_top.part.joints[key].connect_to(base_nuts[key].joints["bottom"])
 
 
 with BuildPart() as base_mid:
     with BuildSketch() as skirt_insert_sketch:
         add(skirt_sketch.sketch)
         offset(amount=-skirt_tol/2, mode=Mode.REPLACE)
-    extrude(skirt_insert_sketch.sketch, amount=-(skirt_depth + skirt_gap))
+    extrude(skirt_insert_sketch.sketch, amount=-(base_mid_thickness))
 
     RigidJoint(label="base_mid_center", joint_location=Location((0, 0, 0)))
 
@@ -254,43 +273,17 @@ with BuildPart() as base_mid:
         amount=base_top_thickness - skirt_depth - dlp_rfid2.module_total_thickness,
     )
 
-    with GridLocations(
-        x_spacing=screw_hole_dist,
-        y_spacing=screw_hole_dist,
-        x_count=2,
-        y_count=2,
-        align=Align.CENTER,
-    ):
-        screw_hole = Hole(
-            radius=screw_hole_thread_dia / 2, 
-            depth=skirt_depth + skirt_gap - screw_hole_bottom_height,
+    with _screw_hole_grid_locs:
+        _screw_loc = Location(
+            (0, 0, -base_mid_thickness),
+            (180, 0, 0),
         )
-
-        with Locations((0, 0, -(skirt_depth + skirt_gap) + base_mid_nut_height)):
-            Box(
-                nut.nut_width + nut_width_tol,
-                nut.nut_width + nut_width_tol,
-                nut.nut_thickness + nut_thickness_tol,
-                rotation=(0, 0, 45),
-                mode=Mode.SUBTRACT,
-                align=(Align.CENTER, Align.CENTER, Align.MIN)
-            )
-            # Extra cuts to ensure better bridges
-            Box(
-                nut.nut_width + nut_width_tol,
-                screw_hole_thread_dia,
-                nut.nut_thickness + nut_thickness_tol + layer_height,
-                rotation=(0, 0, 45),
-                mode=Mode.SUBTRACT,
-                align=(Align.CENTER, Align.CENTER, Align.MIN)
-            )
-            Box(
-                screw_hole_thread_dia,
-                screw_hole_thread_dia,
-                nut.nut_thickness + nut_thickness_tol + 2*layer_height,
-                rotation=(0, 0, 45),
-                mode=Mode.SUBTRACT,
-                align=(Align.CENTER, Align.CENTER, Align.MIN)
+        with Locations(_screw_loc):
+            CounterBoreHole(
+                radius=screw_hole_thread_dia/2,
+                depth=base_mid_thickness,
+                counter_bore_radius=screw_counter_bore_radius / 2,
+                counter_bore_depth=screw_counter_bore_depth,
             )
 
     base_mid_bot = base_mid.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
@@ -309,27 +302,20 @@ with BuildPart() as base_mid:
         base_mid_bot.center() + Vector(-pole_mount_offset, 0, screw_counter_bore_depth),
     )
 
-    with Locations((0, 0, -(skirt_depth + skirt_gap) + base_mid_nut_height)):
-        for idx, gl in enumerate(GridLocations(
-            x_spacing=screw_hole_dist,
-            y_spacing=screw_hole_dist,
-            x_count=2,
-            y_count=2,
-            align=Align.CENTER,
-        )):
-            gl.orientation = Vector(0, 0, 45)
-            RigidJoint(label=f"base_nut{idx}", joint_location=gl)
+    for idx, gl in enumerate(_screw_hole_grid_locs):
+        gl.position += Vector(0, 0, -base_mid_thickness + screw_counter_bore_depth)
+        RigidJoint(label=f"base_screw{idx}", joint_location=gl)
     
     RigidJoint(label="pole_screw_hole", joint_location=pole_cbore_point)
             
 base_top.part.joints["base_top_center"].connect_to(base_mid.joints["base_mid_center"])
 base_mid.part.joints["pole_screw_hole"].connect_to(_pole_screw.joints["head_bottom"])
 
-base_nuts = {}
+base_screws = {}
 for idx in range(4):
-    key = f"base_nut{idx}"
-    base_nuts[key] = copy.copy(nut.out)
-    base_mid.part.joints[key].connect_to(base_nuts[key].joints["bottom"])
+    key = f"base_screw{idx}"
+    base_screws[key] = copy.copy(base_screw.out)
+    base_mid.part.joints[key].connect_to(base_screws[key].joints["head_bottom"])
 
 with BuildPart() as pole:
     hook_point = Vector(dlp_offset, 0, pole_hook_height)
