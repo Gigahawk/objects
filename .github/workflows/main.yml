@@ -146,7 +146,10 @@ jobs:
       - name: Build template
         shell: devenv {0}
         run: |
-          mako-render template.html.mako --var "models=$(find .out -type f -printf '%P\n' | sort)" > .out/index.html
+          mako-render template.html.mako \
+            --var "models=$(find .out -type f -printf '%P\n' | sort)" \
+            --var "gitsha=$(git rev-parse HEAD)" \
+            > .out/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

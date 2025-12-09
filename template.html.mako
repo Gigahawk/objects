@@ -51,6 +51,18 @@
       opacity: 0.5;
       pointer-events: none;
     }
+
+    /* Built-from link: push to the right of the controls */
+    #built-from {
+      margin-left: auto;
+      color: #666;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 8px;
+    }
+    #built-from:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 
@@ -64,6 +76,8 @@
     </select>
 
     <a id="download" href="#" download>Download</a>
+
+    <a id="built-from" href="https://github.com/Gigahawk/objects/commit/${gitsha}">Built from commit ${gitsha[0:7]}</a>
   </div>
 
   <iframe src="https://gigahawk.github.io/Online3DViewer/website/" title="description"></iframe> 
