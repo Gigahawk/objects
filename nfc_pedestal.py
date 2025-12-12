@@ -1,3 +1,30 @@
+"""Stand for displaying a Pokeball Easycard like this one:
+https://cdhelp.iecoach.rest/index.php?main_page=product_info&products_id=344818
+
+Non-printed BOM:
+- 1x DLP Design DLP-RFID2
+- 1x Adafruit 4090 USB C Breakout Board
+    - Aliexpress knockoffs should work as well
+- 1x M2.5x40mm socket head screw
+- 4x M2.5x6mm socket head screw
+- 5x M2.5 square nut
+
+Print settings:
+- Support on build plate only
+- Remember to insert print pauses to place nuts
+- Use the layer height defined below
+
+Notes:
+- Initially, my DLP-RFID2 would shut down after powering the Pokeball for a
+  short time, and seemingly would not turn back on until power cycled.
+  Eventually with enough power cycles it would stay on permanently.
+  I have no idea why this happens but I've seen the same behavior on two
+  different units so presumably it is consistent.
+  Perhaps there is some way of configuring this through the serial connection
+  but I have not looked into it
+- Choose more dark/opaque filaments to hide the circuit boards under the
+  topsheet
+"""
 import copy
 
 from build123d import *
