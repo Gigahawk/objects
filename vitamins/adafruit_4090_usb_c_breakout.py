@@ -84,6 +84,17 @@ resistor_edges = Compound(
     [resistor_x_edge_1, resistor_x_edge_2, resistor_y_edge_1, resistor_y_edge_2]
 )
 resistor_bbox = resistor_edges.bounding_box()
+# STEP model doesn't capture the resistor pads/solder blob width,
+# just hardcode it from measurement
+resistor_bbox.size.X = 2.75
+_resistor_bbox_box = (
+    Pos(resistor_bbox.center())
+    * Box(
+        resistor_bbox.size.X,
+        resistor_bbox.size.Y,
+        resistor_bbox.size.Z,
+    )
+)
 
 
 corner_joint = RigidJoint(label="corner", joint_location=Location((0,0,0)), to_part=out)

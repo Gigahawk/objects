@@ -24,6 +24,11 @@ Notes:
   but I have not looked into it
 - Choose more dark/opaque filaments to hide the circuit boards under the
   topsheet
+- The Aliexpress USB C breakout boards seem to have worse edgecut tolerance than
+  the official Adafruit ones, some filing may be required.
+  Alternatively, adjust `usb_conn_tol`, but note that the mounting holes on the
+  board are drilled and will usually have significantly better tolerance than the
+  edge cut.
 """
 import copy
 
