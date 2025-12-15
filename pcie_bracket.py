@@ -41,43 +41,44 @@ with BuildPart() as bracket:
         with BuildLine() as inner_profile:
             Line((0, inner_tab_length), (0, 0))
             Line((0, 0), (inner_length, 0))
-            offset(
-                amount=thickness, side=Side.RIGHT,
-                closed=True, kind=Kind.TANGENT)
+            offset(amount=thickness, side=Side.RIGHT, closed=True, kind=Kind.TANGENT)
         make_face()
     extrude(amount=full_height)
 
     with BuildSketch(Plane.XZ) as lower_taper_sketch:
         with BuildLine() as path:
             Line(
-                (inner_length, taper_offset),
-                (inner_length, taper_offset - support_gap))
+                (inner_length, taper_offset), (inner_length, taper_offset - support_gap)
+            )
         with BuildLine() as profile:
             Line(
-                (inner_length, taper_offset),
-                (inner_length - taper_depth, taper_offset))
+                (inner_length, taper_offset), (inner_length - taper_depth, taper_offset)
+            )
             PolarLine(
                 (inner_length - taper_depth, taper_offset),
-                length=full_height, angle=-135)
+                length=full_height,
+                angle=-135,
+            )
         sweep(sections=profile.wires(), path=path.wires()[0])
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
     with BuildSketch(Plane.XZ) as upper_taper_sketch:
         with BuildLine():
             Line(
                 (inner_length, taper_offset + taper_width),
-                (inner_length - taper_depth, taper_offset + taper_width))
+                (inner_length - taper_depth, taper_offset + taper_width),
+            )
             PolarLine(
                 (inner_length - taper_depth, taper_offset + taper_width),
-                length=full_height, angle=135)
+                length=full_height,
+                angle=135,
+            )
             offset(amount=full_height, side=Side.RIGHT, closed=True)
         make_face()
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
 
     with BuildSketch(Plane.XZ) as main_top_cutout:
         with BuildLine():
-            Line(
-                (inner_length, main_height),
-                (inner_length - main_length, main_height))
+            Line((inner_length, main_height), (inner_length - main_length, main_height))
             offset(amount=full_height, side=Side.RIGHT, closed=True)
         make_face()
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
@@ -86,14 +87,18 @@ with BuildPart() as bracket:
         with BuildLine() as path:
             Line(
                 (0, main_lower_corner_height),
-                (0, main_lower_corner_height - support_gap))
+                (0, main_lower_corner_height - support_gap),
+            )
         with BuildLine() as profile:
             Line(
                 (-thickness, main_lower_corner_height),
-                (main_lower_corner_depth, main_lower_corner_height))
+                (main_lower_corner_depth, main_lower_corner_height),
+            )
             PolarLine(
                 (main_lower_corner_depth, main_lower_corner_height),
-                length=full_height, angle=-45)
+                length=full_height,
+                angle=-45,
+            )
         sweep(sections=profile.wires(), path=path.wires()[0])
     extrude(until=Until.FIRST, both=True, mode=Mode.SUBTRACT)
 
@@ -102,7 +107,9 @@ with BuildPart() as bracket:
             PolarLine(
                 (main_upper_corner_depth, full_height),
                 length=main_upper_corner_horizontal_length,
-                length_mode=LengthMode.HORIZONTAL, angle=-45)
+                length_mode=LengthMode.HORIZONTAL,
+                angle=-45,
+            )
             offset(amount=full_height, side=Side.LEFT, closed=True)
         make_face()
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
@@ -111,22 +118,38 @@ with BuildPart() as bracket:
         with BuildLine():
             Line(
                 (inner_tab_length, guide_cutout_offset),
-                (inner_tab_length - guide_cutout_depth, guide_cutout_offset))
+                (inner_tab_length - guide_cutout_depth, guide_cutout_offset),
+            )
             Line(
                 (inner_tab_length - guide_cutout_depth, guide_cutout_offset),
-                (inner_tab_length - guide_cutout_depth, guide_cutout_offset + guide_cutout_width))
+                (
+                    inner_tab_length - guide_cutout_depth,
+                    guide_cutout_offset + guide_cutout_width,
+                ),
+            )
             Line(
                 (inner_tab_length, guide_cutout_offset + guide_cutout_width),
-                (inner_tab_length - guide_cutout_depth, guide_cutout_offset + guide_cutout_width))
+                (
+                    inner_tab_length - guide_cutout_depth,
+                    guide_cutout_offset + guide_cutout_width,
+                ),
+            )
             offset(amount=support_gap, side=Side.RIGHT, closed=True)
         make_face()
     extrude(until=Until.FIRST, mode=Mode.SUBTRACT)
 
     with BuildSketch(Plane.YZ) as screw_hole_cutout:
         SlotCenterPoint(
-            (screw_hole_cutout_horizontal_offset, screw_hole_cutout_vertical_offset + full_height),
-            point=(screw_hole_cutout_horizontal_offset, screw_hole_cutout_vertical_offset),
-            height=screw_hole_cutout_diameter)
+            (
+                screw_hole_cutout_horizontal_offset,
+                screw_hole_cutout_vertical_offset + full_height,
+            ),
+            point=(
+                screw_hole_cutout_horizontal_offset,
+                screw_hole_cutout_vertical_offset,
+            ),
+            height=screw_hole_cutout_diameter,
+        )
     extrude(until=Until.FIRST, mode=Mode.SUBTRACT)
 
 result = bracket.part
@@ -137,7 +160,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
+
         show_all()
     except ImportError:
         pass
-

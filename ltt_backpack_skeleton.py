@@ -12,7 +12,7 @@ taper_angle = 15
 taper_fillet = 5
 face_chamfer = 3
 
-taper_length = tan((90 - taper_angle)*pi/180)*thickness
+taper_length = tan((90 - taper_angle) * pi / 180) * thickness
 
 
 main_rib_points = [
@@ -23,13 +23,19 @@ main_rib_points = [
     (length - thickness, thickness),
     (thickness, thickness),
     (thickness, height - taper_length),
-    (0, height)
+    (0, height),
 ]
 
 result = (
-    cq.Workplane("XY").tag("base_plane")
-    .polyline(main_rib_points).close().extrude(width)
-    .edges("|Z and >Y").fillet(taper_fillet)
-    .edges("|Z").fillet(fillet)
-    .faces("|Z").chamfer(face_chamfer)
+    cq.Workplane("XY")
+    .tag("base_plane")
+    .polyline(main_rib_points)
+    .close()
+    .extrude(width)
+    .edges("|Z and >Y")
+    .fillet(taper_fillet)
+    .edges("|Z")
+    .fillet(fillet)
+    .faces("|Z")
+    .chamfer(face_chamfer)
 )

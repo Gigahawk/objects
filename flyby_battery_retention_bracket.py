@@ -19,24 +19,21 @@ with BuildPart() as bracket:
 
     with BuildSketch() as profile_sketch:
         with BuildLine(mode=Mode.PRIVATE):
-            l1 = Line((-length/2, 0), (-length/2 + tab_length, 0))
+            l1 = Line((-length / 2, 0), (-length / 2 + tab_length, 0))
             l2 = Line(l1 @ 1, (l1 @ 1) + (drop_distance, -drop_distance))
             l3 = Line(l2 @ 1, (0, -drop_distance))
         with BuildLine() as profile_line:
             half_line = FilletPolyline(
-                [l1 @ 0, l2 @ 0, l3 @0, l3 @1],
-                radius=fillet_rad
+                [l1 @ 0, l2 @ 0, l3 @ 0, l3 @ 1], radius=fillet_rad
             )
             mirror(half_line, Plane.YZ)
-            offset(
-                amount=thickness, side=Side.RIGHT,
-                closed=True, kind=Kind.TANGENT)
+            offset(amount=thickness, side=Side.RIGHT, closed=True, kind=Kind.TANGENT)
         make_face()
-    extrude(amount=width/2, both=True)
+    extrude(amount=width / 2, both=True)
 
     with BuildSketch(Plane.XZ) as hole_sketch:
-        with Locations([(-hole_distance/2, 0), (hole_distance/2, 0)]):
-            Circle(hole_dia/2)
+        with Locations([(-hole_distance / 2, 0), (hole_distance / 2, 0)]):
+            Circle(hole_dia / 2)
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
 
     with BuildSketch(Plane.XZ) as chamfer_sketch:
@@ -52,7 +49,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
+
         show_all()
     except ImportError:
         pass
-

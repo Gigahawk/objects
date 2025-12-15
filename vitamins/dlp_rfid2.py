@@ -26,8 +26,8 @@ ant_conn_start_x = 1.7
 ant_conn_start_y = 2.85
 
 pin_hole_dia = 0.8
-pin_start_x = 0.4 + pin_hole_dia/2 
-pin_start_y = 1.3 + pin_hole_dia/2
+pin_start_x = 0.4 + pin_hole_dia / 2
+pin_start_y = 1.3 + pin_hole_dia / 2
 
 with BuildPart() as _out:
     with BuildSketch() as board_sketch:
@@ -50,14 +50,18 @@ with BuildPart() as _out:
             (pin_start_x, -pin_start_y), (pcb_width - pin_start_x, -pin_start_y)
         ):
             with GridLocations(
-                x_spacing=0, y_spacing=pin_spacing,
-                x_count=1, y_count=pin_count,
+                x_spacing=0,
+                y_spacing=pin_spacing,
+                x_count=1,
+                y_count=pin_count,
                 align=Align.MAX,
             ):
-                Circle(radius=pin_hole_dia/2)
+                Circle(radius=pin_hole_dia / 2)
     extrude(amount=pcb_thickness, mode=Mode.SUBTRACT)
 
-    RigidJoint(label="center", joint_location=Location((pcb_width/2, -pcb_height/2, 0)))
+    RigidJoint(
+        label="center", joint_location=Location((pcb_width / 2, -pcb_height / 2, 0))
+    )
 
 out = _out.part
 out.color = Color("green")

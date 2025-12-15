@@ -15,15 +15,19 @@ button_chamfer_depth = 0.5
 fillet = 2
 
 result = (
-    cq.Workplane("XY").tag("base_plane")
-    .rect(bulk_width, bulk_height, centered=True).extrude(bulk_thickness)
+    cq.Workplane("XY")
+    .tag("base_plane")
+    .rect(bulk_width, bulk_height, centered=True)
+    .extrude(bulk_thickness)
     .edges("|Z")
     .fillet(fillet)
-    .faces(">Z").workplane()
+    .faces(">Z")
+    .workplane()
     .rarray(button_distance, 0.1, 3, 1, center=True)
     .rect(button_width, button_width)
     .cutBlind(-button_depth)
     # Not sure why you can't do `and not()`
-    .edges(">Z and #Z").edges("not(>Y or >X or <Y or <X)")
+    .edges(">Z and #Z")
+    .edges("not(>Y or >X or <Y or <X)")
     .chamfer(button_chamfer_width, button_chamfer_depth)
 )

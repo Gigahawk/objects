@@ -1,4 +1,5 @@
 """Christmas Ornament"""
+
 import cadquery as cq
 
 msg = "HOEHOEHOE"
@@ -14,12 +15,13 @@ overlap_map = {
 result = cq.Workplane("XY")
 
 for c in msg:
-    result = (
-        result
-        .center(width - overlap_map[c], 0)
-        .text(
-            c, width, thickness, cut=False, combine=True,
-            fontPath="./res/courrier_prime_bold.ttf",
-            halign="center", valign="center"
-        )
+    result = result.center(width - overlap_map[c], 0).text(
+        c,
+        width,
+        thickness,
+        cut=False,
+        combine=True,
+        fontPath="./res/courrier_prime_bold.ttf",
+        halign="center",
+        valign="center",
     )

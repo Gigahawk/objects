@@ -8,7 +8,11 @@ from math import tan, radians
 # McMaster model has origin at center of all axes, head is at positive Z.
 # Reorient to have the mating side of the head at origin facing positive Z.
 _screw = import_step("res/91292A837_18-8_Stainless_Steel_Socket_Head_Screw.step")
-_cyl_faces = _screw.faces().filter_by(GeomType.CYLINDER).sort_by(lambda x: x.radius, reverse=True)
+_cyl_faces = (
+    _screw.faces()
+    .filter_by(GeomType.CYLINDER)
+    .sort_by(lambda x: x.radius, reverse=True)
+)
 _head = _cyl_faces[0]
 head_radius = _head.radius
 head_height = _head.edges().filter_by(GeomType.LINE)[0].length
@@ -33,7 +37,9 @@ nut_height = 37
 _nut = import_step("res/97258A122_18-8_Stainless_Steel_Thin_Square_Nut.step")
 # Rotate to align with Z axis
 _nut = _nut.rotate(Axis.X, -90)
-_nut_side_face = _nut.faces().filter_by(GeomType.PLANE).filter_by(Axis.X).sort_by(Axis.X)[0]
+_nut_side_face = (
+    _nut.faces().filter_by(GeomType.PLANE).filter_by(Axis.X).sort_by(Axis.X)[0]
+)
 nut_width = abs(_nut_side_face.center().X) * 2
 # Move to align bottom face with Z=0
 _nut_bottom_face = _nut.faces().filter_by(GeomType.PLANE).sort_by(Axis.Z)[0]
@@ -94,20 +100,20 @@ thread_min_dia = _male_thread.min_radius * 2
 with BuildPart() as male:
     # Head cover
     with BuildSketch():
-        Circle(thread_min_dia/2)
+        Circle(thread_min_dia / 2)
     extrude(amount=-(head_height + screw_head_extra))
     bottom_edge = male.edges().filter_by(GeomType.CIRCLE).sort_by(Axis.Z)[0]
     with BuildSketch():
         Circle(head_radius + screw_rad_tol)
     extrude(amount=-(head_height + screw_head_extra), mode=Mode.SUBTRACT)
-    #bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
-    #print(f"bottom_fillet: {bottom_fillet}")
+    # bottom_fillet = male.part.max_fillet([bottom_edge], max_iterations=100)
+    # print(f"bottom_fillet: {bottom_fillet}")
     bottom_fillet = 0.8381599042601434
     fillet(objects=bottom_edge, radius=bottom_fillet)
 
     # Threaded portion
     with BuildSketch():
-        Circle(thread_min_dia/2)
+        Circle(thread_min_dia / 2)
         Circle(shank_radius + screw_rad_tol, mode=Mode.SUBTRACT)
     extrude(amount=thread_length)
     add(_male_thread)
@@ -126,7 +132,7 @@ with BuildPart() as male:
     # away from the face of the cue joint
     with BuildSketch(top_face):
         Circle(outer_dia / 2 - side_wall_thickness)
-        Circle(thread_min_dia/2, mode=Mode.SUBTRACT)
+        Circle(thread_min_dia / 2, mode=Mode.SUBTRACT)
     extrude(amount=thread_inset, mode=Mode.SUBTRACT)
 
     top_face = male.faces().sort_by(Axis.Z)[-1]
@@ -218,13 +224,13 @@ with BuildPart() as male:
     protection_edges = (
         male.edges(select=Select.LAST)
         .filter_by(GeomType.CIRCLE)
-        .filter_by(lambda x: x.radius == protection_ring_dia/2)
+        .filter_by(lambda x: x.radius == protection_ring_dia / 2)
     )
     top_edge = protection_edges.sort_by(Axis.Z, reverse=True)[0]
     bot_edge = protection_edges.sort_by(Axis.Z)[0]
     bot_chamfer = (protection_ring_dia - outer_dia) / 2
-    #top_chamfer1 = male.part.max_fillet([top_edge], max_iterations=100)
-    #print(f"top_chamfer1: {top_chamfer1}")
+    # top_chamfer1 = male.part.max_fillet([top_edge], max_iterations=100)
+    # print(f"top_chamfer1: {top_chamfer1}")
     top_chamfer1 = 1.0968892834428599
     chamfer(
         objects=bot_edge,
@@ -235,7 +241,7 @@ with BuildPart() as male:
         length=protection_ring_upper_chamfer_len,
         length2=top_chamfer1,
     )
-    
+
 
 results = {
     "male": male.part,

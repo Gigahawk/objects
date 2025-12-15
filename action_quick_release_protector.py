@@ -171,13 +171,13 @@ with BuildPart() as female:
     protection_edges = (
         female.edges(select=Select.LAST)
         .filter_by(GeomType.CIRCLE)
-        .filter_by(lambda x: x.radius == protection_ring_dia/2)
+        .filter_by(lambda x: x.radius == protection_ring_dia / 2)
     )
     top_edge = protection_edges.sort_by(Axis.Z, reverse=True)[0]
     bot_edge = protection_edges.sort_by(Axis.Z)[0]
     bot_chamfer = (protection_ring_dia - outer_dia) / 2
-    #top_chamfer1 = female.part.max_fillet([top_edge], max_iterations=100)
-    #print(f"top_chamfer1: {top_chamfer1}")
+    # top_chamfer1 = female.part.max_fillet([top_edge], max_iterations=100)
+    # print(f"top_chamfer1: {top_chamfer1}")
     top_chamfer1 = 1.2295599156351562
     chamfer(
         objects=bot_edge,

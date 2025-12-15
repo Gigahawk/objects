@@ -1,8 +1,9 @@
 """LCD cover mounting arms for a Prusa MK3
 
-Line for line translation of 
+Line for line translation of
 https://github.com/prusa3d/Original-Prusa-i3/blob/MK3S/Printed-Parts/SCAD/lcd-supports.scad
 """
+
 from build123d import *
 
 
@@ -75,15 +76,17 @@ support -= Location((-58, 26.1 + 4, 5 - 2.8)) * cube([2.2, 5.8, 29.7])
 # version
 # OpenSCAD font size works different from OCC
 text_scale_constant = 1.35
-support -= (
-    Location((-20, 2, 9.5))
-    * extrude(
-        Text("R1", font_size=5*text_scale_constant, font_style=FontStyle.BOLD, font="Liberation Sans",
-             # (openscad's center=true doesn't seem to do anything for text,
-             # the locations specified in the original code are for minimum alignment)
-             align=Align.MIN),
-        amount=0.6
-    )
+support -= Location((-20, 2, 9.5)) * extrude(
+    Text(
+        "R1",
+        font_size=5 * text_scale_constant,
+        font_style=FontStyle.BOLD,
+        font="Liberation Sans",
+        # (openscad's center=true doesn't seem to do anything for text,
+        # the locations specified in the original code are for minimum alignment)
+        align=Align.MIN,
+    ),
+    amount=0.6,
 )
 
 right_support = support
@@ -96,14 +99,12 @@ left_support += Location((0, 0, 0), (0, 0, 45)) * (
 )
 
 
-results = {
-   "left": left_support,
-   "right": right_support
-}
+results = {"left": left_support, "right": right_support}
 
 
 try:
     from ocp_vscode import *
+
     show_all()
 except:
     pass

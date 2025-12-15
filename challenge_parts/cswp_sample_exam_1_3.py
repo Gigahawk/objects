@@ -16,9 +16,9 @@ inputs = {
         "C": 170,
         "D": 130,
         "E": 41,
-        "Fr": 30/2,
+        "Fr": 30 / 2,
         "Fd": 10,
-        "FR": 15/2,
+        "FR": 15 / 2,
     },
     "q2": {
         "A": 225,
@@ -26,9 +26,9 @@ inputs = {
         "C": 176,
         "D": 137,
         "E": 39,
-        "Fr": 30/2,
+        "Fr": 30 / 2,
         "Fd": 10,
-        "FR": 15/2,
+        "FR": 15 / 2,
     },
     "q3": {
         "A": 209,
@@ -36,11 +36,12 @@ inputs = {
         "C": 169,
         "D": 125,
         "E": 41,
-        "Fr": 30/2,
+        "Fr": 30 / 2,
         "Fd": 10,
-        "FR": 15/2,
+        "FR": 15 / 2,
     },
 }
+
 
 def build(A, B, C, D, E, Fr, Fd, FR):
     plate_thickness = 25
@@ -49,7 +50,7 @@ def build(A, B, C, D, E, Fr, Fd, FR):
     wall_thickness = 15
     wall_height = 95 - plate_thickness
     total_wall_height = wall_height + plate_thickness
-    cylinder_distance = C - wall_thickness/2
+    cylinder_distance = C - wall_thickness / 2
     cylinder_chamfer = 2
     counterbore_radius = Fr
     counterbore_depth = Fd
@@ -62,8 +63,8 @@ def build(A, B, C, D, E, Fr, Fd, FR):
     pocket_depth = 5 - plate_thickness
     pocket_fillet_radius = 10
 
-    X = A/3
-    Y = B/3 + 10
+    X = A / 3
+    Y = B / 3 + 10
 
     with BuildPart() as part:
         # Main Base
@@ -74,8 +75,11 @@ def build(A, B, C, D, E, Fr, Fd, FR):
         with BuildSketch(main_workplane):
             Rectangle(C, C, align=Align.MIN)
             Rectangle(
-                C - wall_thickness, C - wall_thickness,
-                align=Align.MIN, mode=Mode.SUBTRACT)
+                C - wall_thickness,
+                C - wall_thickness,
+                align=Align.MIN,
+                mode=Mode.SUBTRACT,
+            )
             with Locations((C, C)):
                 Circle(radius=wall_inner_rad + wall_thickness)
                 Circle(radius=wall_inner_rad, mode=Mode.SUBTRACT)
@@ -84,43 +88,38 @@ def build(A, B, C, D, E, Fr, Fd, FR):
 
         # Counterbore hole platform
         with BuildSketch(main_workplane):
-            Rectangle(counterbore_platform_width, counterbore_platform_width, 
-                    align=Align.MIN)
+            Rectangle(
+                counterbore_platform_width, counterbore_platform_width, align=Align.MIN
+            )
         extrude(amount=counterbore_platform_height)
         with Locations(part.faces(Select.LAST).sort_by(Axis.Z)[-1]):
             CounterBoreHole(
                 radius=counterbore_through_radius,
                 counter_bore_radius=counterbore_radius,
-                counter_bore_depth=counterbore_depth
+                counter_bore_depth=counterbore_depth,
             )
 
         # Cylinders
         locations = [
-            (cylinder_distance, wall_straight_length/2, total_wall_height),
-            (wall_straight_length/2, cylinder_distance, total_wall_height)
+            (cylinder_distance, wall_straight_length / 2, total_wall_height),
+            (wall_straight_length / 2, cylinder_distance, total_wall_height),
         ]
-        outer_radii = [Y/2, X/2]
+        outer_radii = [Y / 2, X / 2]
         rotations = [(90, 0, 0), (0, 90, 0)]
         for loc, r, rot in zip(locations, outer_radii, rotations):
             with Locations(loc):
                 Cylinder(radius=r, height=D, rotation=rot)
-                Cylinder(radius=E/2, height=D, rotation=rot, mode=Mode.SUBTRACT)
+                Cylinder(radius=E / 2, height=D, rotation=rot, mode=Mode.SUBTRACT)
         # Cylinder chamfers
-        cyl_edges = (
-            part.edges()
-            .filter_by(GeomType.CIRCLE)
-        )
-        cyl_edges = [e for e in cyl_edges if e.radius == E/2]
-        chamfer(
-            cyl_edges,
-            length=cylinder_chamfer
-        )
+        cyl_edges = part.edges().filter_by(GeomType.CIRCLE)
+        cyl_edges = [e for e in cyl_edges if e.radius == E / 2]
+        chamfer(cyl_edges, length=cylinder_chamfer)
 
         # Outer fillets
         outer_edges = (
             part.edges()
             .filter_by(Axis.Z)
-            .sort_by_distance((A/2, B/2), reverse=True)
+            .sort_by_distance((A / 2, B / 2), reverse=True)
         )[:4]
         fillet(outer_edges, radius=outer_fillet_radius)
 
@@ -134,9 +133,9 @@ def build(A, B, C, D, E, Fr, Fd, FR):
 
         # Offset pocket
         main_faces = part.faces().filter_by(Axis.Z)
-        main_faces = ShapeList([
-            f for f in main_faces if f.center().Z == plate_thickness
-        ])
+        main_faces = ShapeList(
+            [f for f in main_faces if f.center().Z == plate_thickness]
+        )
         # 0 index happens to be the counterbore hole in this case.
         # A more robust way may be to filter faces by size to prevent the counterbore
         # from being a part of main_faces
@@ -146,15 +145,14 @@ def build(A, B, C, D, E, Fr, Fd, FR):
             offset(amount=pocket_offset, mode=Mode.REPLACE)
         extrude(amount=pocket_depth, mode=Mode.SUBTRACT)
         # Pocket fillets
-        pocket_fillet_edges = (
-            part.edges(Select.LAST).filter_by(Axis.Z)
-        )
+        pocket_fillet_edges = part.edges(Select.LAST).filter_by(Axis.Z)
         fillet(objects=pocket_fillet_edges, radius=pocket_fillet_radius)
     return part
 
-results = { name: build(**params).part for name, params in inputs.items() }
+
+results = {name: build(**params).part for name, params in inputs.items()}
 for name, rslt in results.items():
-    mass = rslt.volume*density
+    mass = rslt.volume * density
     logging.critical(f"{name} mass: = {mass}")
 
 if "show_object" in locals():
