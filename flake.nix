@@ -7,6 +7,8 @@
 
     flake-utils.url = "github:numtide/flake-utils";
 
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -34,6 +36,7 @@
       pyproject-nix,
       uv2nix,
       pyproject-build-systems,
+      treefmt-nix,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -127,14 +130,19 @@
                 pyprojectOverrides
               ]
             );
+        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
       in
       {
+        formatter = treefmtEval.config.build.wrapper;
+        checks = {
+          formatting = treefmtEval.config.build.check self;
+        };
         devShells.default =
           let
             virtualenv = pythonSet.mkVirtualEnv "objects-devenv" workspace.deps.all;
           in
           pkgs.mkShell {
-            packages = [
+            packages =  [
               virtualenv
               pkgs.uv
             ];
