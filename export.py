@@ -187,11 +187,12 @@ def _do_export(module, path):
     "-j", "--jobs", "jobs", default=0, help="Number of jobs to run in parallel"
 )
 @click.option(
-    "--matrix", is_flag=True,
+    "--matrix",
+    is_flag=True,
     help=(
         "Don't export objects, just output a JSON file for ingesting as a "
         "GitHub Actions matrix"
-    )
+    ),
 )
 def main(files, jobs, matrix):
     if files:
@@ -218,7 +219,7 @@ def main(files, jobs, matrix):
         with open("manifest.json", "w") as f:
             f.write(json.dumps(manifest))
         return 0
-    
+
     print("Cleaning export folder")
     try:
         shutil.rmtree("export")

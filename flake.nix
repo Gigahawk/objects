@@ -142,7 +142,7 @@
             virtualenv = pythonSet.mkVirtualEnv "objects-devenv" workspace.deps.all;
           in
           pkgs.mkShell {
-            packages =  [
+            packages = [
               virtualenv
               pkgs.uv
             ];

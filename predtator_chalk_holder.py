@@ -71,7 +71,8 @@ _upper_thread = Rotation(0, 0, thread_compliment_rotation) * Thread(
     end_finishes=("fade", "fade"),
 )
 
-#finger_indents = True
+
+# finger_indents = True
 def build(finger_indents: bool = True):
     with BuildPart() as _lower_base:
         Cylinder(
@@ -139,14 +140,13 @@ def build(finger_indents: bool = True):
         extrude(amount=-upper_total_height, mode=Mode.INTERSECT)
         upper_side_face = _upper_base.faces().sort_by(Axis.Y)[0]
 
-
     if finger_indents:
         with BuildPart() as _finger_indent_tool:
             with BuildSketch(Plane.XZ) as _finger_indent_sketch:
                 add(upper_side_face)
                 add(lower_side_face)
                 offset(amount=-finger_indent_margin)
-            #extrude(amount=1)  # Attempt to fix broken step export (doesn't seem to work)
+            # extrude(amount=1)  # Attempt to fix broken step export (doesn't seem to work)
             bbox = Compound([_finger_indent_sketch.sketch]).bounding_box()
             bbox_w, _, bbox_h = bbox.max - bbox.min
             center_z = bbox.min.Z + bbox_h / 2
@@ -228,6 +228,7 @@ def build(finger_indents: bool = True):
     lower = Compound([_lower.part, _lower_thread])
     upper = Compound([_upper_base.part, _upper_thread])
     return lower, upper
+
 
 lower, upper = build(finger_indents=False)
 lower_finger_indents, upper_finger_indents = build(finger_indents=True)

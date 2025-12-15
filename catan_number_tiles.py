@@ -52,10 +52,9 @@ numbers = {
 def get_dice_combos(val, dice=2, faces=6):
     @cache
     def get_dice_combos(d, f):
-        dice_vals = [
-            list(range(1, f+1)) for _ in range(d)
-        ]
+        dice_vals = [list(range(1, f + 1)) for _ in range(d)]
         return list(product(*dice_vals))
+
     combos = get_dice_combos(dice, faces)
     sums = [sum(c) for c in combos]
     count = sum(val == s for s in sums)
@@ -65,26 +64,33 @@ def get_dice_combos(val, dice=2, faces=6):
 def build_tile(letter, number, dots, multipart=False):
     with BuildPart() as tile:
         Cylinder(
-            radius=tile_dia/2, height=tile_thickness,
-            align=(Align.CENTER, Align.CENTER, Align.MIN))
+            radius=tile_dia / 2,
+            height=tile_thickness,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
         top_face = tile.faces().sort_by(Axis.Z)[-1]
 
         with BuildSketch(top_face) as number_sketch:
             with Locations((0, number_offset)):
                 Text(
-                    str(number), font_size=number_size, 
-                    font_style=FontStyle.BOLD, font_path=number_font, 
+                    str(number),
+                    font_size=number_size,
+                    font_style=FontStyle.BOLD,
+                    font_path=number_font,
                 )
             with Locations((0, -dot_offset)):
                 with GridLocations(
-                        x_spacing=dot_spacing, y_spacing=0, x_count=dots, y_count=1):
-                    Circle(radius=dot_dia/2)
+                    x_spacing=dot_spacing, y_spacing=0, x_count=dots, y_count=1
+                ):
+                    Circle(radius=dot_dia / 2)
         extrude(amount=number_thickness)
 
         with BuildSketch(Location((0, 0, 0), (0, 180, 0))) as letter_sketch:
             Text(
-                str(letter), font_size=letter_size, 
-                font_style=FontStyle.BOLD, font_path=number_font, 
+                str(letter),
+                font_size=letter_size,
+                font_style=FontStyle.BOLD,
+                font_path=number_font,
             )
         extrude(amount=-letter_depth, mode=Mode.SUBTRACT)
 
@@ -96,9 +102,10 @@ def build_tile(letter, number, dots, multipart=False):
 
 
 results = {
-    f"{letter}_{number}{'_multipart' if multipart else ''}":
-        build_tile(letter, number, get_dice_combos(number), multipart=multipart).part for
-            (letter, number), multipart in product(numbers.items(), [True, False])
+    f"{letter}_{number}{'_multipart' if multipart else ''}": build_tile(
+        letter, number, get_dice_combos(number), multipart=multipart
+    ).part
+    for (letter, number), multipart in product(numbers.items(), [True, False])
 }
 
 
@@ -108,6 +115,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
+
         show(*list(results.values()), names=list(results.keys()), measure_tools=True)
     except ImportError:
         pass

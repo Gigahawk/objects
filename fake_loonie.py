@@ -3,6 +3,7 @@
 import cadquery as cq
 from math import sin, cos, floor, pi
 
+
 def realeaux(self, w, n):
     """Generate a 2D regular realeaux polygon
 
@@ -11,9 +12,9 @@ def realeaux(self, w, n):
         n (int): number of vertices of the realeaux
     """
     rl = cq.Workplane()
-    s = 2*w*sin(pi/(2*n))
+    s = 2 * w * sin(pi / (2 * n))
 
-    poly_dia = s/sin(pi/n)
+    poly_dia = s / sin(pi / n)
     pts1 = cq.Workplane().polygon(n, poly_dia).vertices().vals()
     pts2 = pts1[1:] + [pts1[0]]
 
@@ -24,6 +25,7 @@ def realeaux(self, w, n):
     rl = rl.val()
 
     return self.eachpoint(lambda loc: rl.located(loc), True)
+
 
 cq.Workplane.realeaux = realeaux
 
@@ -36,7 +38,7 @@ sides = 11
 tab_length = 10.0
 tab_width = 10.0
 
-tab_dist = diameter/2 + tab_length
+tab_dist = diameter / 2 + tab_length
 
 # Fillet radius of tab
 fillet_rad = 3.0
@@ -44,17 +46,23 @@ fillet_rad = 3.0
 # Width of tab cuts for grip
 cut_width = 1.5
 
-cut_depth = thickness/4
+cut_depth = thickness / 4
 cut_count = floor(tab_length / cut_width)
 
 
 result = (
-    cq.Workplane("XY").tag("base_plane")
-    .rect(tab_width, tab_dist, centered=[True, False]).extrude(thickness)
-    .edges("|Z").fillet(fillet_rad)
+    cq.Workplane("XY")
+    .tag("base_plane")
+    .rect(tab_width, tab_dist, centered=[True, False])
+    .extrude(thickness)
+    .edges("|Z")
+    .fillet(fillet_rad)
     .workplaneFromTagged("base_plane")
-    .realeaux(diameter, sides).extrude(thickness)
-    .faces(">Z").workplane()
-    .pushPoints([(0, diameter/2 + i*cut_width*2) for i in range(cut_count)])
-    .rect(tab_width, cut_width, centered=[True, False]).cutBlind(-cut_depth)
+    .realeaux(diameter, sides)
+    .extrude(thickness)
+    .faces(">Z")
+    .workplane()
+    .pushPoints([(0, diameter / 2 + i * cut_width * 2) for i in range(cut_count)])
+    .rect(tab_width, cut_width, centered=[True, False])
+    .cutBlind(-cut_depth)
 )

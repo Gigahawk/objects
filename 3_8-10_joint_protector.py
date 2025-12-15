@@ -146,7 +146,7 @@ with BuildPart() as female:
     revolve(axis=Axis.Z, mode=Mode.SUBTRACT)
 
     # Better since the chamfer can intersect the loft but causes geometry issues
-    #with BuildSketch(Plane.YZ) as protection_ring_sketch:
+    # with BuildSketch(Plane.YZ) as protection_ring_sketch:
     #    with BuildLine():
     #        Polyline([
     #            (outer_dia / 2 - protection_ring_extra, 0),
@@ -163,11 +163,11 @@ with BuildPart() as female:
     #    bot_corner = outer_corners.sort_by(Axis.Y)[0]
     #    chamfer(bot_corner, length=nom_chamfer)
     #    chamfer(
-    #        top_corner, 
+    #        top_corner,
     #        length=protection_ring_upper_chamfer_len,
     #        length2=nom_chamfer + protection_ring_extra,
     #    )
-    #revolve(axis=Axis.Z)
+    # revolve(axis=Axis.Z)
     with BuildSketch() as protection_ring_sketch:
         Circle(protection_ring_dia / 2)
         Circle(outer_dia / 2 - protection_ring_extra, mode=Mode.SUBTRACT)
@@ -175,13 +175,13 @@ with BuildPart() as female:
     protection_edges = (
         female.edges(select=Select.LAST)
         .filter_by(GeomType.CIRCLE)
-        .filter_by(lambda x: x.radius == protection_ring_dia/2)
+        .filter_by(lambda x: x.radius == protection_ring_dia / 2)
     )
     top_edge = protection_edges.sort_by(Axis.Z, reverse=True)[0]
     bot_edge = protection_edges.sort_by(Axis.Z)[0]
     bot_chamfer = (protection_ring_dia - outer_dia) / 2
-    #top_chamfer1 = female.part.max_fillet([top_edge], max_iterations=100)
-    #print(f"top_chamfer1: {top_chamfer1}")
+    # top_chamfer1 = female.part.max_fillet([top_edge], max_iterations=100)
+    # print(f"top_chamfer1: {top_chamfer1}")
     top_chamfer1 = 1.046557026157684
     chamfer(
         objects=bot_edge,

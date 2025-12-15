@@ -29,57 +29,64 @@ base_dia = 19.3
 # significantly which is convenient
 _inner_thread = IsoThread(
     major_diameter=16,
-    pitch=11.7/8,
+    pitch=11.7 / 8,
     length=thread_len,
     external=False,
-    end_finishes=["fade","fade"]
+    end_finishes=["fade", "fade"],
 )
 
 _outer_thread = IsoThread(
     major_diameter=17.95,
-    pitch=9.75/4,
+    pitch=9.75 / 4,
     length=thread_len,
     external=True,
-    end_finishes=["fade","fade"]
+    end_finishes=["fade", "fade"],
 )
 
 # Seems like the IsoThread objects have a little extra thickness added to them
 # that causes us issues, get rid of it
 with BuildPart() as wall:
     outer_rad = _outer_thread.min_radius
-    inner_rad = _inner_thread.major_diameter/2
+    inner_rad = _inner_thread.major_diameter / 2
     wall_thickness = outer_rad - inner_rad
     if wall_thickness < min_wall_thickness:
-        logger.warning(f"Nominal wall thickness is {wall_thickness}, expanding to {min_wall_thickness}")
+        logger.warning(
+            f"Nominal wall thickness is {wall_thickness}, expanding to {min_wall_thickness}"
+        )
         # Inner thread is smaller and probably more sensitive to tolerance deviations,
         # Expand into outer thread
         outer_rad = inner_rad + min_wall_thickness
     Cylinder(
-        radius=outer_rad, height=thread_len,
+        radius=outer_rad,
+        height=thread_len,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
     )
     Cylinder(
-        radius=base_dia/2, height=base_thickness,
+        radius=base_dia / 2,
+        height=base_thickness,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
     )
     Cylinder(
-        radius=inner_rad, height=thread_len,
+        radius=inner_rad,
+        height=thread_len,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
-        mode=Mode.SUBTRACT
+        mode=Mode.SUBTRACT,
     )
 with BuildPart() as inner_thread:
     add(_inner_thread)
     Cylinder(
-        radius=inner_rad, height=thread_len,
+        radius=inner_rad,
+        height=thread_len,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
-        mode=Mode.INTERSECT
+        mode=Mode.INTERSECT,
     )
 with BuildPart() as outer_thread:
     add(_outer_thread)
     Cylinder(
-        radius=outer_rad, height=thread_len,
+        radius=outer_rad,
+        height=thread_len,
         align=(Align.CENTER, Align.CENTER, Align.MIN),
-        mode=Mode.SUBTRACT
+        mode=Mode.SUBTRACT,
     )
 
 with BuildPart() as part:
@@ -95,7 +102,7 @@ if __name__ == "__main__":
 
     try:
         from ocp_vscode import *
+
         show_all()
     except ImportError:
         pass
-
