@@ -40,6 +40,7 @@ from vitamins import adafruit_4090_usb_c_breakout as usb_breakout
 from vitamins import nut_m2_5_square as nut
 from vitamins import screw_socket_m2_5_40 as pole_screw
 from vitamins import screw_socket_m2_5_06 as base_screw
+from vitamins import washer_m8_oversized as weight_insert
 
 layer_height = 0.2
 
@@ -92,6 +93,15 @@ pole_mount_offset = 27
 pole_tol = 0.1
 pole_mount_depth = 4
 pole_nut_height = 27
+
+weight_insert_height = 0.4
+weight_insert_layers = 2
+weight_insert_width_tol = 0.2
+weight_insert_thickness_tol = 0.2
+weight_insert_dia = weight_insert.outer_dia + weight_insert_width_tol
+weight_insert_thickness = weight_insert.thickness + weight_insert_thickness_tol
+weight_insert_grid_spacing_x = 40
+weight_insert_grid_spacing_y = 30
 
 
 _usb_breakout = copy.copy(usb_breakout.out)
@@ -209,12 +219,6 @@ with BuildPart() as base_top:
                 (0, 0, nut_ofst_from_surface - screw_hole_end_ofst_from_surface)
             ):
                 add(_nut_cutout, mode=Mode.SUBTRACT)
-        #    screw_hole = CounterBoreHole(
-        #        radius=screw_hole_thread_dia / 2,
-        #        depth = base_top_thickness + topsheet_thickness,
-        #        counter_bore_radius=screw_counter_bore_radius / 2,
-        #        counter_bore_depth=screw_counter_bore_depth,
-        #    )
 
     with BuildSketch() as pole_mount_pocket:
         with Locations((-pole_mount_offset, 0)):
@@ -364,8 +368,39 @@ with BuildPart() as base_mid:
 
     RigidJoint(label="pole_screw_hole", joint_location=pole_cbore_point)
 
+    with BuildPart(mode=Mode.PRIVATE) as _weight_cutout_tool:
+        weight_insert_start = base_mid_bot.center() + Vector(0, 0, weight_insert_height)
+        weight_insert_layer_locs = []
+        for idx in range(weight_insert_layers):
+            weight_insert_layer_locs.append(
+                # Assuming thickness tolerance doesn't stack
+                weight_insert_start
+                + idx * Vector(0, 0, weight_insert.thickness)
+            )
+        _cutout_cyl = Cylinder(
+            radius=weight_insert_dia / 2,
+            height=weight_insert_thickness,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+            mode=Mode.PRIVATE,
+        )
+        with Locations(weight_insert_layer_locs):
+            add(_cutout_cyl)
+            with GridLocations(
+                x_spacing=weight_insert_grid_spacing_x,
+                y_spacing=weight_insert_grid_spacing_y,
+                x_count=2,
+                y_count=2,
+            ):
+                add(_cutout_cyl)
+
+
+_base_mid_move = base_top.part.joints["base_top_center"].relative_to(
+    base_mid.joints["base_mid_center"]
+)
 base_top.part.joints["base_top_center"].connect_to(base_mid.joints["base_mid_center"])
 base_mid.part.joints["pole_screw_hole"].connect_to(_pole_screw.joints["head_bottom"])
+weight_cutout_tool = _weight_cutout_tool.part.moved(_base_mid_move)
+base_mid_cutout = base_mid.part - weight_cutout_tool
 
 base_screws = {}
 for idx in range(4):
@@ -427,6 +462,7 @@ asm = Compound([base_top.part, base_mid.part, pole.part])
 results = {
     "base_top": base_top.part,
     "base_mid": base_mid.part,
+    "base_mid_cutout": base_mid_cutout,
     "pole": pole.part,
     "asm": asm,
 }
