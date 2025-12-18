@@ -3,6 +3,10 @@
 Currently supports CPUs for the following sockets:
 - FCPGA946
 
+Print setting recommendations:
+- Brim ears on outside corners (Superslicer feature)
+    - Use brim blockers on the inside corners to avoid the two halves from fusing together
+
 """
 
 from build123d import *
