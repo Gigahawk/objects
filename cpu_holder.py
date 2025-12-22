@@ -16,6 +16,8 @@ from build123d import *
 
 from vitamins import hinge
 
+first_layer_thickness = 0.2
+
 hinge_gap = 0.2
 hinge_dia = 10
 hinge_ground_gap = 1
@@ -43,7 +45,7 @@ label_extra = 5
 finger_gap_length = 15
 finger_gap_taper_angle = 20
 marker_depth = 1
-marker_width = clamshell_wall_thickness / 1.5
+marker_width = clamshell_wall_thickness
 
 # Max width for PrusaSlicer to not complain about a long bridge is about 14.5
 tab_width = 12
@@ -76,7 +78,7 @@ tab_hole_height = (
 tab_hole_height_rem = clamshell_thickness - tab_hole_height
 # When printing we expect the top layer to droop pushing the tab into the bottom
 # of the hole, move path down to compensate so we end up with the correct length
-tab_thickness_center_offset = tab_mount_hole_thickness_tol/2
+tab_thickness_center_offset = tab_mount_hole_thickness_tol / 2
 
 _hinge = hinge.build(
     hinge_dia=hinge_dia,
@@ -114,7 +116,7 @@ with BuildPart() as holder_parent:
     with BuildSketch(parent_center_loc) as marker_sketch:
         marker_loc = Location(
             (
-                -(_cpu_substrate_width / 2),
+                -(_cpu_substrate_width / 2 + clamshell_wall_thickness / 2),
                 (_cpu_substrate_length / 2 + clamshell_wall_thickness / 2),
                 0,
             )
@@ -124,7 +126,7 @@ with BuildPart() as holder_parent:
                 a=marker_width,
                 b=marker_width,
                 C=90,
-                align=(Align.MIN, Align.MAX),
+                align=(Align.MAX, Align.CENTER),
                 rotation=180,
             )
     extrude(amount=-marker_depth, mode=Mode.SUBTRACT)
@@ -143,17 +145,6 @@ with BuildPart() as holder_parent:
         holder_parent.faces(Select.LAST).filter_by(Axis.Z).sort_by(Axis.Z)[0]
     )
 
-    with BuildSketch(parent_center_loc) as substrate_pocket_sketch:
-        Rectangle(
-            _cpu_substrate_width + 2 * clamshell_wall_thickness, finger_gap_length
-        )
-        Rectangle(
-            _cpu_substrate_width,
-            _cpu_substrate_length,
-            mode=Mode.SUBTRACT,
-        )
-    extrude(amount=-_cpu_substrate_thickness, mode=Mode.SUBTRACT)
-
     with BuildSketch(substrate_pocket_face) as pin_pocket_sketch:
         Rectangle(
             cpu_pin_pocket_width,
@@ -161,23 +152,25 @@ with BuildPart() as holder_parent:
         )
     extrude(amount=-_cpu_pin_depth, mode=Mode.SUBTRACT)
 
-    with BuildSketch(substrate_pocket_face) as substrate_pocket_sketch:
-        Rectangle(
-            # Just a really big value to ensure we cut all the way through even with a taper
-            (_cpu_substrate_width + 2 * clamshell_wall_thickness)*2,
-            finger_gap_length
-        )
-        Rectangle(
-            _cpu_substrate_width,
-            _cpu_substrate_length,
-            mode=Mode.SUBTRACT,
-        )
-    extrude(
-        amount=-clamshell_thickness,
-        mode=Mode.SUBTRACT,
-        taper=finger_gap_taper_angle
-    )
-
+    with BuildSketch(
+        Plane.XZ.offset(-parent_center_loc.position.Y)
+    ) as finger_cutout_sketch:
+        with BuildLine():
+            Polyline(
+                [
+                    (hinge_width / 2, first_layer_thickness),
+                    (hinge_width / 2, clamshell_thickness),
+                    (hinge_width / 2 - clamshell_wall_thickness, clamshell_thickness),
+                    (
+                        hinge_width / 2 - clamshell_wall_thickness,
+                        clamshell_thickness - cpu_substrate_thickness,
+                    ),
+                ],
+                close=True,
+            )
+        make_face()
+        mirror(about=Plane.YZ)
+    extrude(amount=finger_gap_length / 2, both=True, mode=Mode.SUBTRACT)
 
     with BuildSketch(parent_front_face) as tab_hole_sketch:
         with Locations(Location((0, 0, 0), (0, 0, -90))):
@@ -199,7 +192,11 @@ with BuildPart() as _tab:
         _base_line = FilletPolyline(
             [
                 (0, tab_mount_hole_depth, -tab_thickness_center_offset),
-                (0, -(tab_catch_depth + tab_thickness / 2), -tab_thickness_center_offset),
+                (
+                    0,
+                    -(tab_catch_depth + tab_thickness / 2),
+                    -tab_thickness_center_offset,
+                ),
                 (
                     0,
                     -(tab_catch_depth + tab_thickness / 2),
@@ -214,7 +211,12 @@ with BuildPart() as _tab:
     with BuildSketch(parent_front_face, mode=Mode.PRIVATE) as tab_profile:
         with Locations(Location((0, 0, 0), (0, 0, -90))):
             with Locations(
-                (0, -clamshell_thickness / 2 + tab_hole_height - tab_thickness_center_offset)
+                (
+                    0,
+                    -clamshell_thickness / 2
+                    + tab_hole_height
+                    - tab_thickness_center_offset,
+                )
             ):
                 Rectangle(
                     tab_width,
