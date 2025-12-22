@@ -10,6 +10,7 @@ Print setting recommendations:
 - Support on build plate only
     - Block supports inside the hinge
 - Print the tab on its side with no brim
+- Tab should be printed with something other than PLA to avoid creep issues
 """
 
 from build123d import *
