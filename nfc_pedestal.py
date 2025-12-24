@@ -99,6 +99,7 @@ weight_insert_layers = 2
 weight_insert_width_tol = 0.2
 weight_insert_thickness_tol = 0.2
 weight_insert_dia = weight_insert.outer_dia + weight_insert_width_tol
+weight_insert_inner_dia = weight_insert.inner_dia - weight_insert_width_tol
 weight_insert_thickness = weight_insert.thickness + weight_insert_thickness_tol
 weight_insert_grid_spacing_x = 40
 weight_insert_grid_spacing_y = 30
@@ -383,8 +384,15 @@ with BuildPart() as base_mid:
             align=(Align.CENTER, Align.CENTER, Align.MIN),
             mode=Mode.PRIVATE,
         )
+        _cutout_cyl_inner = Cylinder(
+            radius=weight_insert_inner_dia / 2,
+            height=weight_insert_thickness,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+            mode=Mode.PRIVATE,
+        )
         with Locations(weight_insert_layer_locs):
             add(_cutout_cyl)
+            add(_cutout_cyl_inner, mode=Mode.SUBTRACT)
             with GridLocations(
                 x_spacing=weight_insert_grid_spacing_x,
                 y_spacing=weight_insert_grid_spacing_y,
@@ -392,6 +400,7 @@ with BuildPart() as base_mid:
                 y_count=2,
             ):
                 add(_cutout_cyl)
+                add(_cutout_cyl_inner, mode=Mode.SUBTRACT)
 
 
 _base_mid_move = base_top.part.joints["base_top_center"].relative_to(
