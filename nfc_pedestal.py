@@ -96,12 +96,13 @@ pole_hook_inner_dia = 5
 pole_hook_thickness = 2
 pole_thickness = 7
 pole_width = 7
-pole_height = pole_hook_height + pole_hook_inner_dia + pole_thickness / 2
 pole_fillet_rad = 30
 pole_mount_offset = 27
 pole_tol = 0.1
 pole_mount_depth = 4
 pole_nut_height = 27
+pole_height = pole_hook_height + pole_hook_inner_dia + pole_thickness / 2
+pole_hook_outer_dia = pole_hook_inner_dia + 2 * pole_hook_thickness
 
 weight_insert_height = first_layer_height
 weight_insert_layers = 2
@@ -453,7 +454,7 @@ with BuildPart() as pole:
             [
                 (-pole_mount_offset, 0, -pole_mount_depth),
                 (-pole_mount_offset, 0, pole_height),
-                (dlp_offset + pole_hook_inner_dia / 2, 0, pole_height),
+                (dlp_offset + pole_hook_outer_dia / 2, 0, pole_height),
             ],
         )
         _pole_fillet_corner = (
@@ -465,11 +466,41 @@ with BuildPart() as pole:
             Rectangle(pole_thickness, pole_width, align=Align.CENTER)
     sweep(sections=pole_profile.sketch, path=pole_path.line)
 
+    pole_front_face = pole.faces().filter_by(Axis.X).sort_by(Axis.X)[-1]
+    pole_top_edge = (
+        pole.edges()
+        .filter_by(Axis.Y)
+        .sort_by(Axis.X, reverse=True)[:2]
+        .sort_by(Axis.Z)[-1]
+    )
+    with BuildSketch(pole_front_face) as hook_blank_sketch:
+        Rectangle(pole_thickness, pole_width)
+        Rectangle(
+            pole_thickness / 2 + pole_hook_inner_dia + pole_hook_thickness,
+            pole_hook_thickness,
+            align=(Align.MAX, Align.CENTER),
+        )
+        hook_blank_fillet_points = (
+            hook_blank_sketch.vertices()
+            .group_by(Axis.X)[1]
+            .sort_by_distance((0, 0, 0))[0:2]
+        )
+        hook_blank_fillet = (pole_width - pole_hook_thickness) / 2 - 0.01
+        fillet(objects=hook_blank_fillet_points, radius=hook_blank_fillet)
+    extrude(amount=-pole_hook_outer_dia)
+
     with BuildSketch(Plane.XZ) as hook_sketch:
         with Locations((dlp_offset, pole_hook_height + pole_hook_inner_dia / 2)):
-            Circle(pole_hook_inner_dia / 2 + pole_hook_thickness)
-            Circle(pole_hook_inner_dia / 2, mode=Mode.SUBTRACT)
-    extrude(amount=pole_hook_thickness / 2, both=True)
+            Rectangle(pole_hook_outer_dia, pole_hook_outer_dia)
+            Circle(pole_hook_outer_dia / 2, mode=Mode.SUBTRACT)
+            Rectangle(
+                pole_hook_outer_dia,
+                pole_hook_outer_dia / 2,
+                align=(Align.CENTER, Align.MIN),
+                mode=Mode.SUBTRACT,
+            )
+            Circle(pole_hook_inner_dia / 2)
+    extrude(amount=pole_width / 2, both=True, mode=Mode.SUBTRACT)
 
     pole_bot_face = pole.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
     with BuildSketch(pole_bot_face) as pole_mount_hole_sketch:
