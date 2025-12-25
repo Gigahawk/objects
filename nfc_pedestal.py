@@ -48,7 +48,7 @@ from vitamins import screw_socket_m2_5_40 as pole_screw
 from vitamins import screw_socket_m2_5_06 as base_screw
 from vitamins import washer_m8_oversized as weight_insert
 
-layer_height = 0.2
+layer_height = 0.1
 first_layer_height = 0.2
 
 topsheet_thickness = first_layer_height + 1 * layer_height
