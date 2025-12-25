@@ -11,10 +11,18 @@ Non-printed BOM:
 
 Print settings:
 - Support on build plate only
-- Remember to insert print pauses to place nuts
+    - If having trouble printing the supports for the counterbores on base_mid, try
+      reducing first layer speed
+- Remember to insert print pauses to place nuts/washers
 - Use the layer height defined below
+- If printing base_mid_cutout:
+    - Thick bridges may be helpful
+    - Ironing may also be helpful
+        - Use a height range modifier to skip ironing the top faces to save time
+- Choose more dark/opaque filaments to hide the circuit boards under the
+  topsheet
 
-Notes:
+Assembly Notes:
 - Initially, my DLP-RFID2 would shut down after powering the Pokeball for a
   short time, and seemingly would not turn back on until power cycled.
   Eventually with enough power cycles it would stay on permanently.
@@ -22,8 +30,6 @@ Notes:
   different units so presumably it is consistent.
   Perhaps there is some way of configuring this through the serial connection
   but I have not looked into it
-- Choose more dark/opaque filaments to hide the circuit boards under the
-  topsheet
 - The Aliexpress USB C breakout boards seem to have worse edgecut tolerance than
   the official Adafruit ones, some filing may be required.
   Alternatively, adjust `usb_conn_tol`, but note that the mounting holes on the
@@ -43,9 +49,9 @@ from vitamins import screw_socket_m2_5_06 as base_screw
 from vitamins import washer_m8_oversized as weight_insert
 
 layer_height = 0.2
+first_layer_height = 0.2
 
-# First layer is always 0.2
-topsheet_thickness = 0.2 + layer_height
+topsheet_thickness = first_layer_height + 1 * layer_height
 base_width = 70
 base_top_thickness = 6
 base_fillet = 10
@@ -54,6 +60,9 @@ skirt_wall_thickness = 1
 skirt_depth = 1
 skirt_gap = 4
 skirt_tol = 0.1
+skirt_support_gap_z = 0.2
+skirt_support_gap_xy = 0.4
+skirt_support_thickness = skirt_wall_thickness * 2
 base_mid_thickness = skirt_gap + skirt_depth
 
 screw_hole_dist_x = 54
@@ -94,7 +103,7 @@ pole_tol = 0.1
 pole_mount_depth = 4
 pole_nut_height = 27
 
-weight_insert_height = 0.4
+weight_insert_height = first_layer_height
 weight_insert_layers = 2
 weight_insert_width_tol = 0.2
 weight_insert_thickness_tol = 0.2
@@ -306,6 +315,30 @@ with BuildPart() as base_mid:
         amount=base_top_thickness - usb_breakout.nom_pcb_thickness,
     )
 
+    with BuildSketch(
+        Plane.XY.offset(-(skirt_depth + skirt_support_gap_z))
+    ) as skirt_support_sketch:
+        with Locations(
+            (
+                -(
+                    base_width / 2
+                    - skirt_wall_thickness
+                    - skirt_tol / 2
+                    + skirt_support_gap_xy
+                ),
+                usb_conn_center_offset,
+            )
+        ):
+            Rectangle(
+                skirt_support_thickness,
+                usb_breakout.pcb_width + pcb_xy_tol,
+                align=(Align.MAX, Align.CENTER),
+            )
+    extrude(
+        skirt_support_sketch.sketch,
+        amount=-(base_mid_thickness - skirt_support_gap_z - skirt_depth),
+    )
+
     with BuildSketch(Plane.YZ.offset(-base_width / 2)) as usb_cutout_sketch:
         with Locations(
             (
@@ -403,13 +436,9 @@ with BuildPart() as base_mid:
                 add(_cutout_cyl_inner, mode=Mode.SUBTRACT)
 
 
-_base_mid_move = base_top.part.joints["base_top_center"].relative_to(
-    base_mid.joints["base_mid_center"]
-)
+base_mid_cutout = copy.copy(base_mid.part) - _weight_cutout_tool.part
 base_top.part.joints["base_top_center"].connect_to(base_mid.joints["base_mid_center"])
 base_mid.part.joints["pole_screw_hole"].connect_to(_pole_screw.joints["head_bottom"])
-weight_cutout_tool = _weight_cutout_tool.part.moved(_base_mid_move)
-base_mid_cutout = base_mid.part - weight_cutout_tool
 
 base_screws = {}
 for idx in range(4):
