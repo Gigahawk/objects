@@ -35,6 +35,8 @@ Assembly Notes:
   Alternatively, adjust `usb_conn_tol`, but note that the mounting holes on the
   board are drilled and will usually have significantly better tolerance than the
   edge cut.
+- Depending on your printer tolerance, the pole probably won't stand up perfectly
+  straight, you will probably have to bend it a bit after assembly to get it vertical.
 """
 
 import copy
