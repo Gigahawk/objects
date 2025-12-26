@@ -473,6 +473,14 @@ with BuildPart() as pole:
         .sort_by(Axis.X, reverse=True)[:2]
         .sort_by(Axis.Z)[-1]
     )
+
+    # HACK: I have no idea why, but when hook_blank_sketch is extruded,
+    # it causes an the bottom of the pole to be extended by 5mm?
+    # even though we are extruding in a completely different area.
+    # Cache this face ahead of time so we can cut off the extra length
+    # later.
+
+    pole_bot_face = pole.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
     with BuildSketch(pole_front_face) as hook_blank_sketch:
         Rectangle(pole_thickness, pole_width)
         Rectangle(
@@ -487,8 +495,14 @@ with BuildPart() as pole:
         )
         hook_blank_fillet = (pole_width - pole_hook_thickness) / 2 - 0.01
         fillet(objects=hook_blank_fillet_points, radius=hook_blank_fillet)
+        # For some reason if we don't subtract out the pole profile part
+        # we can't fillet the top edge later
         Rectangle(pole_thickness, pole_width, mode=Mode.SUBTRACT)
     extrude(amount=-pole_hook_outer_dia)
+
+    with BuildSketch(pole_bot_face) as _pole_hack_fixup_sketch:
+        Rectangle(pole_width, pole_thickness)
+    extrude(amount=100, mode=Mode.SUBTRACT)
 
     with BuildSketch(Plane.XZ) as hook_sketch:
         with Locations((dlp_offset, pole_hook_height + pole_hook_inner_dia / 2)):
@@ -503,8 +517,8 @@ with BuildPart() as pole:
             Circle(pole_hook_inner_dia / 2)
     extrude(amount=pole_width / 2, both=True, mode=Mode.SUBTRACT)
 
-    #pole_top_edge_fillet = pole.part.max_fillet([pole_top_edge], max_iterations=100)
-    #print(f"pole_top_edge_fillet: {pole_top_edge_fillet}")
+    # pole_top_edge_fillet = pole.part.max_fillet([pole_top_edge], max_iterations=100)
+    # print(f"pole_top_edge_fillet: {pole_top_edge_fillet}")
     pole_top_edge_fillet = 9.442809097399119
     fillet(pole_top_edge, radius=pole_top_edge_fillet)
 
