@@ -487,6 +487,7 @@ with BuildPart() as pole:
         )
         hook_blank_fillet = (pole_width - pole_hook_thickness) / 2 - 0.01
         fillet(objects=hook_blank_fillet_points, radius=hook_blank_fillet)
+        Rectangle(pole_thickness, pole_width, mode=Mode.SUBTRACT)
     extrude(amount=-pole_hook_outer_dia)
 
     with BuildSketch(Plane.XZ) as hook_sketch:
@@ -501,6 +502,11 @@ with BuildPart() as pole:
             )
             Circle(pole_hook_inner_dia / 2)
     extrude(amount=pole_width / 2, both=True, mode=Mode.SUBTRACT)
+
+    #pole_top_edge_fillet = pole.part.max_fillet([pole_top_edge], max_iterations=100)
+    #print(f"pole_top_edge_fillet: {pole_top_edge_fillet}")
+    pole_top_edge_fillet = 9.442809097399119
+    fillet(pole_top_edge, radius=pole_top_edge_fillet)
 
     pole_bot_face = pole.faces().filter_by(Axis.Z).sort_by(Axis.Z)[0]
     with BuildSketch(pole_bot_face) as pole_mount_hole_sketch:
