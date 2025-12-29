@@ -119,6 +119,14 @@
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
           });
 
+          build123d = prev.build123d.overrideAttrs (old: {
+            postInstall = ''
+              mesher_path=($out/lib/python3*/site-packages/build123d/mesher.py)
+              substituteInPlace "$mesher_path" \
+                --replace 'raise RuntimeError("3mf mesh is invalid")' \
+                'warnings.warn("3mf mesh is invalid", stacklevel=2)'
+            '';
+          });
           bd-warehouse = prev.bd-warehouse.overrideAttrs (old: {
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
           });
