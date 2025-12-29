@@ -5,11 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "bd-warehouse",
-    "build123d>=0.9.1",
+    "bd-warehouse>=0.1.1",
+    "build123d>=0.10.0",
     "cadquery",
     "click>=8.2.1",
-    "ocp-vscode>=2.7.1",
+    "ocp-vscode>=3.0.1",
 ]
 
 # https://stackoverflow.com/a/72547402
@@ -17,5 +17,4 @@ dependencies = [
 py-modules = []
 
 [tool.uv.sources]
-bd-warehouse = { git = "https://github.com/gumyr/bd_warehouse" }
 cadquery = { git = "https://github.com/CadQuery/cadquery" }

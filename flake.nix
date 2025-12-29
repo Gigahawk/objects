@@ -115,6 +115,10 @@
             prev = prev.casadi;
           };
 
+          pyperclip = prev.pyperclip.overrideAttrs (old: {
+            buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
+          });
+
           bd-warehouse = prev.bd-warehouse.overrideAttrs (old: {
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
           });

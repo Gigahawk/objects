@@ -4,21 +4,29 @@ CadQuery scripts for physical objects.
 
 ## Requirements
 
-- Install [Anaconda](https://docs.anaconda.com/anaconda/install/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-- Open an Anaconda/Miniconda shell in this directory, then run `conda env create -f environment.yml` to install the conda environment
+- Install [nix](https://nixos.org/download/) and [enable flakes](https://nixos.wiki/wiki/flakes)
 
 ## Usage
 
 ### Development
 
-- In an Anaconda/Miniconda shell, run `conda activate cadquery` to activate the conda environment
-- Run `CQ-Editor` to visualize a part while it is still in development
+- Run `nix develop` to activate the dev environment
+    - The first run will involve compiling This involves compiling VTK from scratch, this will take a while.
+- Run `python -m ocp-vscode` to activate the web viewer, then navigate to http://localhost:3939/viewer
+
+### Upgrading dependencies
+
+- Activate the `uv` environment with `nix develop .#uv`
+- Update the targeted version in `pyproject.toml`, then run `uv lock`
+- `exit` the dev environment, then rebuild the dev environment with `nix develop`
 
 ### Exporting
 
 #### Locally
 
 Running `python export.py` will create STEP files for importing into other CAD packages as well as mesh files for 3D printing
+
+> Use `-f part.py` to export a single file only
 
 #### On GitHub
 
