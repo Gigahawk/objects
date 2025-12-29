@@ -21,11 +21,12 @@ usb_side_faces = (
 usb_side_face_locs = [f.center().X for f in usb_side_faces]
 usb_width = abs(usb_side_face_locs[0] - usb_side_face_locs[1])
 
+
 # Why doesn't just a simple filter_by(Axis.Y) work for this?
 usb_fillets = (
     out.faces()
     .filter_by(GeomType.CYLINDER)
-    .filter_by(lambda f: f.rotational_axis.is_parallel(Axis.Y))
+    .filter_by(lambda f: f.axis_of_rotation.is_parallel(Axis.Y))
     .sort_by(lambda f: f.radius, reverse=True)
 )[
     0:6
