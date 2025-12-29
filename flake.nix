@@ -120,6 +120,7 @@
           });
 
           build123d = prev.build123d.overrideAttrs (old: {
+            # See https://github.com/gumyr/build123d/pull/1181 for details
             postInstall = ''
               mesher_path=($out/lib/python3*/site-packages/build123d/mesher.py)
               substituteInPlace "$mesher_path" \
