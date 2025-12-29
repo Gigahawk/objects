@@ -192,9 +192,9 @@ with BuildPart() as base_top:
                     dlp_wiring_edge @ 1,
                     # Need access to pins 4-7 for PWR/GND
                     dlp_wiring_edge @ (1 - (4 / 7 + 0.1)),
-                    usb_wiring_edge @ 0,
                     # Arbitrary, only need access to last two pins, give extra space for ease of soldering
                     usb_wiring_edge @ 0.4,
+                    usb_wiring_edge @ 0,
                 ],
                 close=True,
             )
