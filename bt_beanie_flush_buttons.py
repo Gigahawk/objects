@@ -38,12 +38,23 @@ center_rib_offset = 0.5
 top_circle_dia = 1.9 * 2
 top_circle_hole_dia = 1.5
 
+cover_disk_dia = 34
+cover_disk_offset = 6.25
+cover_disk_cutout_offset = 10
+cover_disk_cutout_width = 11
+cover_disk_cutout_length = 8
+cover_disk_thickness = 0.6
+# cover_disk_tape_width = 14
+# cover_disk_tape_length = 14
+
 _button_locs = [
     (0, 0),
     (11.025, -2.005),
     (-11.025, -2.005),
 ]
 button_locs = Locations(_button_locs)
+
+cover_disk_center = Locations((0, cover_disk_offset))
 
 mic_punchout_loc = Locations(
     (5.19, -3.02),
@@ -53,6 +64,7 @@ screw_punchout_locs = Locations(
     (-15.30, 0.932),
     (15.34, 0.732),
 )
+
 
 with BuildPart() as buttons:
     with BuildSketch() as button_sketch:
@@ -128,8 +140,37 @@ with BuildPart() as buttons:
 
     extrude(amount=button_clearance_depth, taper=-button_pusher_taper)
 
+with BuildPart() as cover_disk:
+    with BuildSketch() as disk_sketch:
+        with cover_disk_center:
+            Circle(cover_disk_dia / 2)
+            with Locations((0, -cover_disk_cutout_offset)):
+                Rectangle(
+                    cover_disk_cutout_width,
+                    cover_disk_cutout_length,
+                    align=(Align.CENTER, Align.MAX),
+                    mode=Mode.SUBTRACT,
+                )
+    extrude(amount=cover_disk_thickness)
+    top_surface = cover_disk.faces().sort_by(Axis.Z, reverse=True)[0]
+    top_edge = top_surface.edges().filter_by(GeomType.CIRCLE)
+    # outer diameter is already marginal, chamfer results in buttons being
+    # exposed
+    # chamfer(top_edge, length=cover_disk_thickness - 0.001)
 
-result = buttons.part
+with BuildPart() as cover_disk_holes:
+    add(cover_disk)
+    with BuildSketch() as cover_disk_hole_sketch:
+        with button_locs:
+            Circle(button_dia / 2)
+    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
+
+
+results = {
+    "buttons": buttons.part,
+    "cover_disk": cover_disk.part,
+    "cover_disk_holes": cover_disk_holes.part,
+}
 
 if __name__ == "__main__":
     try:
