@@ -17,12 +17,12 @@ from build123d import *
 
 button_dia = 6
 button_depth = 1.8 - 0.85
-backing_thickness = 0.7
+backing_thickness = 0.2
 backing_rib_width = 1
 button_clearance_dia = 4.7
 button_pusher_dia = 1.3
 button_pusher_taper = 40
-button_clearance_depth = 1
+button_clearance_depth = 0.8
 button_clearance_chamfer = 0.5
 
 
@@ -38,14 +38,6 @@ center_rib_offset = 0.5
 top_circle_dia = 1.9 * 2
 top_circle_hole_dia = 1.5
 
-cover_disk_dia = 34
-cover_disk_offset = 6.25
-cover_disk_cutout_offset = 10
-cover_disk_cutout_width = 11
-cover_disk_cutout_length = 8
-cover_disk_thickness = 0.6
-# cover_disk_tape_width = 14
-# cover_disk_tape_length = 14
 
 _button_locs = [
     (0, 0),
@@ -140,36 +132,9 @@ with BuildPart() as buttons:
 
     extrude(amount=button_clearance_depth, taper=-button_pusher_taper)
 
-with BuildPart() as cover_disk:
-    with BuildSketch() as disk_sketch:
-        with cover_disk_center:
-            Circle(cover_disk_dia / 2)
-            with Locations((0, -cover_disk_cutout_offset)):
-                Rectangle(
-                    cover_disk_cutout_width,
-                    cover_disk_cutout_length,
-                    align=(Align.CENTER, Align.MAX),
-                    mode=Mode.SUBTRACT,
-                )
-    extrude(amount=cover_disk_thickness)
-    top_surface = cover_disk.faces().sort_by(Axis.Z, reverse=True)[0]
-    top_edge = top_surface.edges().filter_by(GeomType.CIRCLE)
-    # outer diameter is already marginal, chamfer results in buttons being
-    # exposed
-    # chamfer(top_edge, length=cover_disk_thickness - 0.001)
-
-with BuildPart() as cover_disk_holes:
-    add(cover_disk)
-    with BuildSketch() as cover_disk_hole_sketch:
-        with button_locs:
-            Circle(button_dia / 2)
-    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
-
 
 results = {
     "buttons": buttons.part,
-    "cover_disk": cover_disk.part,
-    "cover_disk_holes": cover_disk_holes.part,
 }
 
 if __name__ == "__main__":
