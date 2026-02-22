@@ -9,7 +9,7 @@ dependencies = [
     "build123d>=0.10.0",
     "cadquery",
     "click>=8.2.1",
-    "ocp-vscode>=3.0.1",
+    "ocp-vscode>=3.1.2",
 ]
 
 # https://stackoverflow.com/a/72547402
