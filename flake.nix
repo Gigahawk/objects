@@ -148,9 +148,8 @@
             postInstall = ''
               cli_path=($out/lib/python3*/site-packages/filewatcher123d/cli.py)
               substituteInPlace "$cli_path" \
-                --replace-fail 'use_autoreload = "--autoreload" in args' \
-                'use_autoreload = True' \
-                --replace-fail 'args.remove("--autoreload")' ' '
+                --replace-fail 'use_autoreload = args.autoreload' \
+                'use_autoreload = True'
             '';
           });
         };

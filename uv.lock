@@ -477,8 +477,8 @@ wheels = [
 
 [[package]]
 name = "filewatcher123d"
-version = "0.0.3"
-source = { git = "https://github.com/jdegenstein/filewatcher123d#3fd5cce44ca0170c531bbb3dfd81bc66719a3db0" }
+version = "0.0.4"
+source = { git = "https://github.com/jdegenstein/filewatcher123d#954fda76aae0805a323bcaa4b24c015777c4d399" }
 dependencies = [
     { name = "build123d" },
     { name = "ipykernel" },
