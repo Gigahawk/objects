@@ -46,8 +46,6 @@ _button_locs = [
 ]
 button_locs = Locations(_button_locs)
 
-cover_disk_center = Locations((0, cover_disk_offset))
-
 mic_punchout_loc = Locations(
     (5.19, -3.02),
 )
