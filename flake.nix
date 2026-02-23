@@ -136,6 +136,14 @@
           });
           filewatcher123d = prev.filewatcher123d.overrideAttrs (old: {
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
+            # Always enable autoreload
+            postInstall = ''
+              cli_path=($out/lib/python3*/site-packages/filewatcher123d/cli.py)
+              substituteInPlace "$cli_path" \
+                --replace-fail 'use_autoreload = "--autoreload" in args' \
+                'use_autoreload = True' \
+                --replace-fail 'args.remove("--autoreload")' ' '
+            '';
           });
         };
         pythonSet =
