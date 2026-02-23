@@ -134,6 +134,14 @@
           cadquery = prev.cadquery.overrideAttrs (old: {
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
           });
+          ocp-vscode = prev.ocp-vscode.overrideAttrs (old: {
+            # buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
+            # https://github.com/bernhard-42/vscode-ocp-cad-viewer/pull/215
+            postInstall = ''
+              cd $out/lib/python3*/site-packages/
+              patch -p 1 < ${./patches/ocp-vscode-autoreconnect.patch}
+            '';
+          });
           filewatcher123d = prev.filewatcher123d.overrideAttrs (old: {
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
             # Always enable autoreload
