@@ -9,6 +9,7 @@ dependencies = [
     "build123d>=0.10.0",
     "cadquery",
     "click>=8.2.1",
+    "filewatcher123d",
     "ocp-vscode>=3.1.2",
 ]
 
@@ -18,3 +19,4 @@ py-modules = []
 
 [tool.uv.sources]
 cadquery = { git = "https://github.com/CadQuery/cadquery" }
+filewatcher123d = { git = "https://github.com/jdegenstein/filewatcher123d" }

@@ -134,6 +134,9 @@
           cadquery = prev.cadquery.overrideAttrs (old: {
             buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
           });
+          filewatcher123d = prev.filewatcher123d.overrideAttrs (old: {
+            buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
+          });
         };
         pythonSet =
           (pkgs.callPackage pyproject-nix.build.packages {
