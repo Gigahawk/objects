@@ -9,12 +9,27 @@ the diameter of the head so that it can still be removed.
 Alternatively Players cues use 1/2"-12TPI threaded weight bolts.
 You can use headless (grub) screws instead.
 
+I've tried these:
+- https://www.aliexpress.com/item/1005002672612369.html
+  - Size: 1|2-12 (5pcs)
+  - Length: 1/2"
+  - They weigh about 6.3g each
+  - Fits a 6mm (flat to flat) hex key
+
 Print Settings:
 - Material: not PLA, PETG preferred
 - Layer Height: 0.1mm
 - Use Arachne perimeter generator
 - Maybe disable elephant foot compensation for better adhesion
   unless yours is really dialed in
+
+Notes:
+- My cue came with a weight bolt thats
+  - Measures 38mm (end to end)
+  - Fits a 6mm (flat to flat) hex key
+  - Weighs about 28g
+  - If using the grub screws linked above use about 4-5 to match the weight,
+    although to get the exact same feel you may have to play around with spacing
 """
 
 import logging
