@@ -45,14 +45,15 @@ _cavity_dia = 17.5  # tight fit, maybe reduce by 0.05
 cavity_dia_tol = 0.0
 cavity_dia = _cavity_dia - cavity_dia_tol
 
-thread_len = 16
+# Cavity depth is about 31.5mm on my cue
+thread_len = 25
 
 cut_depth = 0.3
 cut_vert_ang = 10
 cut_vert_count = 10
 cut_horz_height = 2
 cut_horz_angle = 30
-cut_horz_count = 4
+cut_horz_count = 6
 cut_horz_buffer = 1.5
 
 
@@ -120,11 +121,9 @@ with BuildPart() as wall:
     revolve(mode=Mode.SUBTRACT)
 
 
-with BuildPart() as part:
-    add(_inner_thread)
-    add(wall)
+part = Compound([_inner_thread, wall.part])
 
-result = part.part
+result = part
 
 if __name__ == "__main__":
     if "show_object" in locals():
