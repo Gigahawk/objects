@@ -218,54 +218,32 @@ with BuildPart() as _female:
                 Rectangle(width=notch_depth, height=notch_height, align=Align.MAX)
     revolve(axis=Axis.Z, mode=Mode.SUBTRACT)
 
-    # Better since the chamfer can intersect the loft but causes geometry issues
-    # with BuildSketch(Plane.YZ) as protection_ring_sketch:
-    #     with BuildLine():
-    #         Polyline(
-    #             [
-    #                 (outer_dia / 2 - protection_ring_extra, 0),
-    #                 (protection_ring_dia / 2, 0),
-    #                 (protection_ring_dia / 2, protection_ring_height),
-    #                 (outer_dia / 2 - protection_ring_extra, protection_ring_height),
-    #             ]
-    #         )
-    #     make_face()
-    #     outer_corners = protection_ring_sketch.vertices().sort_by(Axis.X, reverse=True)[
-    #         :2
-    #     ]
-    #     nom_chamfer = (protection_ring_dia - outer_dia) / 2
-    #     top_corner = outer_corners.sort_by(Axis.Y)[-1]
-    #     bot_corner = outer_corners.sort_by(Axis.Y)[0]
-    #     chamfer(bot_corner, length=nom_chamfer)
-    #     chamfer(
-    #         top_corner,
-    #         length=protection_ring_upper_chamfer_len,
-    #         length2=nom_chamfer + protection_ring_extra,
-    #     )
-    # revolve(axis=Axis.Z)
+    with BuildSketch(Plane.YZ) as protection_ring_sketch:
+        with BuildLine():
+            Polyline(
+                [
+                    (outer_dia / 2 - protection_ring_extra, 0),
+                    (protection_ring_dia / 2, 0),
+                    (protection_ring_dia / 2, protection_ring_height),
+                    (outer_dia / 2 - protection_ring_extra, protection_ring_height),
+                ],
+                close=True
+            )
+        make_face()
+        outer_corners = protection_ring_sketch.vertices().sort_by(Axis.X, reverse=True)[
+            :2
+        ]
+        nom_chamfer = (protection_ring_dia - outer_dia) / 2
+        top_corner = outer_corners.sort_by(Axis.Y)[-1]
+        bot_corner = outer_corners.sort_by(Axis.Y)[0]
+        chamfer(bot_corner, length=nom_chamfer)
+        chamfer(
+            top_corner,
+            length=protection_ring_upper_chamfer_len,
+            length2=nom_chamfer + protection_ring_extra,
+        )
+    revolve(axis=Axis.Z)
 
-    with BuildSketch() as protection_ring_sketch:
-        Circle(protection_ring_dia / 2)
-        Circle(outer_dia / 2 - protection_ring_extra, mode=Mode.SUBTRACT)
-    extrude(amount=protection_ring_height)
-    protection_edges = (
-        edges(select=Select.LAST)
-        .filter_by(GeomType.CIRCLE)
-        .filter_by(lambda x: x.radius == protection_ring_dia / 2)
-    )
-    top_edge = protection_edges.sort_by(Axis.Z, reverse=True)[0]
-    bot_edge = protection_edges.sort_by(Axis.Z)[0]
-    bot_chamfer = (protection_ring_dia - outer_dia) / 2
-    top_chamfer1 = _female.part.max_fillet([top_edge], max_iterations=100)
-    chamfer(
-        objects=bot_edge,
-        length=bot_chamfer,
-    )
-    chamfer(
-        objects=top_edge,
-        length=protection_ring_upper_chamfer_len,
-        length2=top_chamfer1,
-    )
 
 female = Compound(
     [_female.part]
