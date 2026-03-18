@@ -30,9 +30,13 @@ def get_section_dia(section) -> float:
     if isinstance(section, Thread):
         # Only for female thread
         return section.root_radius * 2
-    raise NotImplementedError(
-        f"get_section_dia not implemented for type {type(section)}"
-    )
+    try:
+        bb = section.bounding_box()
+        return bb.size.X
+    except AttributeError:
+        raise NotImplementedError(
+            f"get_section_dia not implemented for type {type(section)}"
+        )
 
 
 def get_section_height(section) -> float:
