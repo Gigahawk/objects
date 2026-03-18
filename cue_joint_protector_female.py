@@ -10,6 +10,8 @@ from bd_warehouse.thread import (
     TrapezoidalThread,
 )
 
+from vitamins.cue_joint_protector_blank import CueJointProtectorBlank
+
 from math import tan, radians
 
 THREAD_CLASSES = (
@@ -54,17 +56,8 @@ def get_section_height(section) -> float:
         )
 
 
-num_faces = 6
-
 outer_dia = 21.5
-
 total_length = 42.95
-
-protection_ring_thickness = 1.25
-protection_ring_height = 6
-protection_ring_upper_chamfer_len = 2
-# HACK: To compensate for loft cut
-protection_ring_extra = 0.2
 
 _shoulder_dia = 8
 _shoulder_length = 9.15
@@ -150,9 +143,11 @@ thread_sections = [
 ]
 
 with BuildPart() as _female:
-    with BuildSketch():
-        Circle(outer_dia / 2)
-    extrude(amount=total_length)
+    CueJointProtectorBlank(
+        total_length=total_length,
+        outer_dia = outer_dia,
+    )
+
     section_height = 0
     section_height_map = {}
     for section in thread_sections:
@@ -170,80 +165,6 @@ with BuildPart() as _female:
                     mode=Mode.SUBTRACT,
                 )
         section_height += height
-
-    top_face = faces().sort_by(Axis.Z)[-1]
-    bot_face = faces().sort_by(Axis.Z)[0]
-    with BuildSketch(top_face) as loft_top:
-        RegularPolygon(
-            side_count=num_faces,
-            radius=outer_dia / 2,
-            major_radius=True,
-        )
-    with BuildSketch(bot_face) as loft_bot:
-        RegularPolygon(
-            side_count=num_faces,
-            radius=outer_dia / 2,
-            major_radius=False,
-        )
-    loft(sections=[loft_top.sketch, loft_bot.sketch], mode=Mode.INTERSECT)
-
-    with BuildSketch(top_face) as chamfer_loft_top:
-        RegularPolygon(
-            side_count=num_faces,
-            radius=top_chamfer_loft_top_dia / 2,
-            major_radius=True,
-        )
-    with BuildSketch(bot_face) as chamfer_loft_bot:
-        RegularPolygon(
-            side_count=num_faces,
-            radius=top_chamfer_loft_bot_dia / 2,
-            major_radius=True,
-        )
-    loft(
-        sections=[chamfer_loft_top.sketch, chamfer_loft_bot.sketch], mode=Mode.INTERSECT
-    )
-    top_face = faces().sort_by(Axis.Z)[-1]
-    chamfer(top_face.edges(), length=top_secondary_chamfer_len)
-
-    with BuildSketch(Plane.XZ) as notch_sketch:
-        point = Vector(outer_dia / 2, top_face.center().Z - notch_start)
-        with Locations(point):
-            with GridLocations(
-                x_spacing=0,
-                y_spacing=-notch_offset,
-                x_count=1,
-                y_count=notch_count,
-                align=Align.MIN,
-            ):
-                Rectangle(width=notch_depth, height=notch_height, align=Align.MAX)
-    revolve(axis=Axis.Z, mode=Mode.SUBTRACT)
-
-    with BuildSketch(Plane.YZ) as protection_ring_sketch:
-        with BuildLine():
-            Polyline(
-                [
-                    (outer_dia / 2 - protection_ring_extra, 0),
-                    (protection_ring_dia / 2, 0),
-                    (protection_ring_dia / 2, protection_ring_height),
-                    (outer_dia / 2 - protection_ring_extra, protection_ring_height),
-                ],
-                close=True
-            )
-        make_face()
-        outer_corners = protection_ring_sketch.vertices().sort_by(Axis.X, reverse=True)[
-            :2
-        ]
-        nom_chamfer = (protection_ring_dia - outer_dia) / 2
-        top_corner = outer_corners.sort_by(Axis.Y)[-1]
-        bot_corner = outer_corners.sort_by(Axis.Y)[0]
-        chamfer(bot_corner, length=nom_chamfer)
-        chamfer(
-            top_corner,
-            length=protection_ring_upper_chamfer_len,
-            length2=nom_chamfer + protection_ring_extra,
-        )
-    revolve(axis=Axis.Z)
-
 
 female = Compound(
     [_female.part]
