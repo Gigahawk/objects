@@ -1,4 +1,5 @@
 """Joint Protector for Action Quick Release joint used in the Action ACTBJ09"""
+
 from build123d import *
 from bd_warehouse.thread import Thread
 
@@ -33,16 +34,14 @@ _male_thread = Thread(
     end_finishes=("fade", "fade"),
 )
 thread_min_dia = _male_thread.root_radius * 2
-thread_sections = [
-    _male_thread
-]
+thread_sections = [_male_thread]
 
 result = build(
     stem_dia=thread_min_dia,
     stem_extra_len=shoulder_length,
     total_length=total_length,
     outer_dia=outer_dia,
-    thread_sections=thread_sections
+    thread_sections=thread_sections,
 )
 
 if __name__ == "__main__":

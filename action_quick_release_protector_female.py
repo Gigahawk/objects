@@ -1,8 +1,7 @@
 """Joint Protector for Action Quick Release joint used in the Action ACTBJ09"""
+
 from build123d import *
-from bd_warehouse.thread import (
-    Thread
-)
+from bd_warehouse.thread import Thread
 
 from vitamins.cue_joint_protector_female import build, get_section_dia, Dome
 from vitamins.cue_joint_protector_blank import ALIGN
@@ -79,9 +78,7 @@ thread_sections = [
 
 
 result = build(
-    total_length=total_length,
-    outer_dia=outer_dia,
-    thread_sections=thread_sections
+    total_length=total_length, outer_dia=outer_dia, thread_sections=thread_sections
 )
 
 

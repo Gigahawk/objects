@@ -8,7 +8,7 @@ from vitamins import nut_m2_5_square as nut
 from vitamins.cue_joint_protector_female import (
     get_section_height,
     get_section_dia,
-    THREAD_CLASSES
+    THREAD_CLASSES,
 )
 
 from vitamins.cue_joint_protector_blank import CueJointProtectorBlank, ALIGN
@@ -38,11 +38,11 @@ def build(
         with BuildSketch(mating_face) as pocket_sketch:
             Circle(pocket_rad)
         extrude(amount=-pocket_depth, mode=Mode.SUBTRACT)
-        
+
         pocket_face = faces(select=Select.LAST).filter_by(Axis.Z).sort_by(Axis.Z)[0]
         with BuildSketch(pocket_face) as stem_sketch:
             Circle(stem_dia / 2)
-        extrude(amount = pocket_depth + stem_extra_len)
+        extrude(amount=pocket_depth + stem_extra_len)
 
         section_height = stem_extra_len
         section_height_map = {}
@@ -59,7 +59,7 @@ def build(
             section_height += height
         if tip_dia is None:
             tip_dia = dia
-        
+
         screw_head_face = faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
         screw_head_loc = screw_head_face.center()
         screw_head_height = screw_head_loc.Z
@@ -70,7 +70,11 @@ def build(
         extrude(amount=screw.head_height + screw_head_extra)
 
         tip_face = faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
-        tip_edge = tip_face.edges().filter_by(GeomType.CIRCLE).sort_by(lambda x: x.radius, reverse=True)[0]
+        tip_edge = (
+            tip_face.edges()
+            .filter_by(GeomType.CIRCLE)
+            .sort_by(lambda x: x.radius, reverse=True)[0]
+        )
         tip_fillet = _male.part.max_fillet([tip_edge], max_iterations=100)
         fillet(objects=tip_edge, radius=tip_fillet)
 
@@ -78,10 +82,14 @@ def build(
             Circle(screw.shank_radius)
         extrude(amount=-(screw.length + screw_tip_tol), mode=Mode.SUBTRACT)
 
-        nut_loc = Location((0, 0, screw_head_height - screw.length + nut_overengagement))
+        nut_loc = Location(
+            (0, 0, screw_head_height - screw.length + nut_overengagement)
+        )
         with Locations(nut_loc):
-            add(nut.build_cutout(bridge_helper_hole_dia=screw.shank_radius*2), mode=Mode.SUBTRACT)
-
+            add(
+                nut.build_cutout(bridge_helper_hole_dia=screw.shank_radius * 2),
+                mode=Mode.SUBTRACT,
+            )
 
     male = Compound(
         [_male.part]
@@ -92,18 +100,20 @@ def build(
         ]
     )
     RigidJoint(label="nut", to_part=male, joint_location=nut_loc)
-    RigidJoint(label="screw", to_part=male, joint_location=Location(screw_head_loc, orientation=Vector(180, 0, 0)))
+    RigidJoint(
+        label="screw",
+        to_part=male,
+        joint_location=Location(screw_head_loc, orientation=Vector(180, 0, 0)),
+    )
     return male
 
 
 default = build(
-    stem_dia = 4,
-    stem_extra_len = 10,
-    total_length = 42.95,
-    outer_dia = 21.5,
-    thread_sections = [
-        Cylinder(3, 10, align=ALIGN)
-    ]
+    stem_dia=4,
+    stem_extra_len=10,
+    total_length=42.95,
+    outer_dia=21.5,
+    thread_sections=[Cylinder(3, 10, align=ALIGN)],
 )
 _nut = copy.copy(nut.out)
 _screw = copy.copy(screw.out)

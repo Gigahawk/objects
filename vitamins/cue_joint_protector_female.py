@@ -21,6 +21,7 @@ THREAD_CLASSES = (
     PlasticBottleThread,
 )
 
+
 class Dome(Sphere):
     def __init__(self, *args, align=ALIGN, **kwargs):
         super().__init__(*args, arc_size1=0, align=align, **kwargs)
@@ -54,6 +55,7 @@ def get_section_height(section) -> float:
             f"get_section_height not implemented for type {type(section)}"
         )
 
+
 def build(
     thread_sections: list[BasePartObject] = [],
     **kwargs,
@@ -69,7 +71,9 @@ def build(
             if isinstance(section, THREAD_CLASSES):
                 thread_outer_dia = get_section_dia(section)
                 with Locations((0, 0, section_height)):
-                    Cylinder(thread_outer_dia / 2, height, mode=Mode.SUBTRACT, align=ALIGN)
+                    Cylinder(
+                        thread_outer_dia / 2, height, mode=Mode.SUBTRACT, align=ALIGN
+                    )
                     # add(section)
             else:
                 with Locations((0, 0, section_height)):
@@ -90,11 +94,7 @@ def build(
 
 
 default = build(
-    total_length = 42.95,
-    outer_dia = 21.5,
-    thread_sections = [
-        Cylinder(3, 10, align=ALIGN)
-    ]
+    total_length=42.95, outer_dia=21.5, thread_sections=[Cylinder(3, 10, align=ALIGN)]
 )
 
 if __name__ == "__main__":

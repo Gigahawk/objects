@@ -3,6 +3,7 @@ from build123d import *
 
 ALIGN = (Align.CENTER, Align.CENTER, Align.MIN)
 
+
 class CueJointProtectorBlank(BasePartObject):
     def __init__(
         self,
@@ -68,7 +69,8 @@ class CueJointProtectorBlank(BasePartObject):
                     major_radius=True,
                 )
             loft(
-                sections=[chamfer_loft_top.sketch, chamfer_loft_bot.sketch], mode=Mode.INTERSECT
+                sections=[chamfer_loft_top.sketch, chamfer_loft_bot.sketch],
+                mode=Mode.INTERSECT,
             )
 
             # Cut secondary chamfer
@@ -86,7 +88,9 @@ class CueJointProtectorBlank(BasePartObject):
                         y_count=notch_count,
                         align=Align.MIN,
                     ):
-                        Rectangle(width=notch_depth, height=notch_height, align=Align.MAX)
+                        Rectangle(
+                            width=notch_depth, height=notch_height, align=Align.MAX
+                        )
             revolve(axis=Axis.Z, mode=Mode.SUBTRACT)
 
             # Protection ring
@@ -97,14 +101,17 @@ class CueJointProtectorBlank(BasePartObject):
                             (outer_dia / 2 - protection_ring_extra, 0),
                             (self.protection_ring_dia / 2, 0),
                             (self.protection_ring_dia / 2, protection_ring_height),
-                            (outer_dia / 2 - protection_ring_extra, protection_ring_height),
+                            (
+                                outer_dia / 2 - protection_ring_extra,
+                                protection_ring_height,
+                            ),
                         ],
-                        close=True
+                        close=True,
                     )
                 make_face()
-                outer_corners = protection_ring_sketch.vertices().sort_by(Axis.X, reverse=True)[
-                    :2
-                ]
+                outer_corners = protection_ring_sketch.vertices().sort_by(
+                    Axis.X, reverse=True
+                )[:2]
                 nom_chamfer = (self.protection_ring_dia - outer_dia) / 2
                 top_corner = outer_corners.sort_by(Axis.Y)[-1]
                 bot_corner = outer_corners.sort_by(Axis.Y)[0]
@@ -116,13 +123,12 @@ class CueJointProtectorBlank(BasePartObject):
                 )
             revolve(axis=Axis.Z)
 
-
         super().__init__(part=protector_blank.part, **kwargs)
-    
+
     @property
     def top_chamfer_loft_top_dia(self) -> float:
         return self.outer_dia - 2 * self.top_loft_chamfer_inset
-    
+
     @property
     def top_chamfer_loft_bot_dia(self) -> float:
         return self.top_chamfer_loft_top_dia + 2 * (
@@ -134,12 +140,9 @@ class CueJointProtectorBlank(BasePartObject):
         return self.outer_dia + self.protection_ring_thickness * 2
 
 
-
-
-
 default = CueJointProtectorBlank(
-    total_length = 42.95,
-    outer_dia = 21.5,
+    total_length=42.95,
+    outer_dia=21.5,
 )
 
 if __name__ == "__main__":
