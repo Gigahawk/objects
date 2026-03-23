@@ -142,15 +142,8 @@
               patch -p 1 < ${./patches/ocp-vscode-autoreconnect.patch}
             '';
           });
-          filewatcher123d = prev.filewatcher123d.overrideAttrs (old: {
-            buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
-            # Always enable autoreload
-            postInstall = ''
-              cli_path=($out/lib/python3*/site-packages/filewatcher123d/cli.py)
-              substituteInPlace "$cli_path" \
-                --replace-fail 'use_autoreload = args.autoreload' \
-                'use_autoreload = True'
-            '';
+          ipython-b3d = prev.ipython-b3d.overrideAttrs (old: {
+            buildInputs = (old.buildInputs or [ ]) ++ [ prev.uv-build ];
           });
         };
         pythonSet =
