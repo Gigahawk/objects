@@ -31,6 +31,8 @@ def get_section_dia(section) -> float:
     if isinstance(section, Thread):
         # Only for female thread
         return section.root_radius * 2
+    if isinstance(section, IsoThread):
+        return section.major_diameter
     try:
         bb = section.bounding_box()
         return bb.size.X
