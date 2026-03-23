@@ -136,6 +136,7 @@
           });
           ocp-vscode = prev.ocp-vscode.overrideAttrs (old: {
             # buildInputs = (old.buildInputs or [ ]) ++ [ prev.setuptools ];
+            # Waiting for release of
             # https://github.com/bernhard-42/vscode-ocp-cad-viewer/pull/215
             postInstall = ''
               cd $out/lib/python3*/site-packages/

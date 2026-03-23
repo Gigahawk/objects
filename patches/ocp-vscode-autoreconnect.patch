@@ -1,3 +1,12 @@
+From 8631ddb4717d531c025bccc8ae2c59c42d963dad Mon Sep 17 00:00:00 2001
+From: Jasper Chan <jasperchan515@gmail.com>
+Date: Mon, 23 Feb 2026 13:44:26 -0800
+Subject: [PATCH 1/6] [WIP] feature: browser auto reconnect to server
+
+---
+ ocp_vscode/static/js/comms.js | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
 diff --git a/ocp_vscode/static/js/comms.js b/ocp_vscode/static/js/comms.js
 index 2a67b9a..cfda26b 100644
 --- a/ocp_vscode/static/js/comms.js
@@ -41,3 +50,299 @@ index 2a67b9a..cfda26b 100644
          };
      }
  
+-- 
+2.52.0
+
+
+From f2b88a0d70f0a8da48f6335de979e48da2fe43b2 Mon Sep 17 00:00:00 2001
+From: Jasper Chan <jasperchan515@gmail.com>
+Date: Wed, 18 Mar 2026 15:29:32 -0700
+Subject: [PATCH 2/6] [AI GENERATED] show on screen warning when disconnected
+
+---
+ ocp_vscode/static/js/comms.js    | 11 +++++-
+ ocp_vscode/templates/viewer.html | 68 ++++++++++++++++++++++++++++++++
+ resources/viewer.html            | 68 ++++++++++++++++++++++++++++++++
+ 3 files changed, 146 insertions(+), 1 deletion(-)
+
+diff --git a/ocp_vscode/static/js/comms.js b/ocp_vscode/static/js/comms.js
+index cfda26b..4ec2111 100644
+--- a/ocp_vscode/static/js/comms.js
++++ b/ocp_vscode/static/js/comms.js
+@@ -17,6 +17,11 @@ class Comms {
+         this.socket.onopen = (event) => {
+             console.log("WebSocket connection established");
+             this.ready = true;
++            // Hide the disconnect warning when connection is re-established
++            const warningElement = document.getElementById("ws-disconnect-warning");
++            if (warningElement) {
++                warningElement.classList.remove("show");
++            }
+             this.register();
+         };
+ 
+@@ -31,7 +36,11 @@ class Comms {
+ 
+         this.socket.onclose = (event) => {
+             console.log("WebSocket connection closed");
+-            // TODO: maybe some way of notifying the GUI that the connection is dead
++            // Show on-screen warning that the connection is dead
++            const warningElement = document.getElementById("ws-disconnect-warning");
++            if (warningElement) {
++                warningElement.classList.add("show");
++            }
+             console.log("Attempting to reconnect in 1s");
+             setTimeout(() => {
+                 this.createWebsocket();
+-- 
+2.52.0
+
+
+From 1ee26dfee4308e9d14eb8642094016835e969729 Mon Sep 17 00:00:00 2001
+From: Jasper Chan <jasperchan515@gmail.com>
+Date: Thu, 19 Mar 2026 14:17:51 -0700
+Subject: [PATCH 3/6] Revert "[AI GENERATED] show on screen warning when
+ disconnected"
+
+This reverts commit f2b88a0d70f0a8da48f6335de979e48da2fe43b2.
+---
+ ocp_vscode/static/js/comms.js    | 11 +-----
+ ocp_vscode/templates/viewer.html | 68 --------------------------------
+ resources/viewer.html            | 68 --------------------------------
+ 3 files changed, 1 insertion(+), 146 deletions(-)
+
+diff --git a/ocp_vscode/static/js/comms.js b/ocp_vscode/static/js/comms.js
+index 4ec2111..cfda26b 100644
+--- a/ocp_vscode/static/js/comms.js
++++ b/ocp_vscode/static/js/comms.js
+@@ -17,11 +17,6 @@ class Comms {
+         this.socket.onopen = (event) => {
+             console.log("WebSocket connection established");
+             this.ready = true;
+-            // Hide the disconnect warning when connection is re-established
+-            const warningElement = document.getElementById("ws-disconnect-warning");
+-            if (warningElement) {
+-                warningElement.classList.remove("show");
+-            }
+             this.register();
+         };
+ 
+@@ -36,11 +31,7 @@ class Comms {
+ 
+         this.socket.onclose = (event) => {
+             console.log("WebSocket connection closed");
+-            // Show on-screen warning that the connection is dead
+-            const warningElement = document.getElementById("ws-disconnect-warning");
+-            if (warningElement) {
+-                warningElement.classList.add("show");
+-            }
++            // TODO: maybe some way of notifying the GUI that the connection is dead
+             console.log("Attempting to reconnect in 1s");
+             setTimeout(() => {
+                 this.createWebsocket();
+-- 
+2.52.0
+
+
+From ed259fd63f77d3ece398262a7f36af5ba3613487 Mon Sep 17 00:00:00 2001
+From: Jasper Chan <jasperchan515@gmail.com>
+Date: Thu, 19 Mar 2026 14:17:28 -0700
+Subject: [PATCH 4/6] feature: display warning in bottom when disconnected
+
+* [WIP] feature: limit number of reconnection attempts by default
+
+Co-authored-by: Bernhard <b_walter@arcor.de>
+---
+ ocp_vscode/static/js/comms.js | 32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
+
+diff --git a/ocp_vscode/static/js/comms.js b/ocp_vscode/static/js/comms.js
+index cfda26b..c2e76db 100644
+--- a/ocp_vscode/static/js/comms.js
++++ b/ocp_vscode/static/js/comms.js
+@@ -4,19 +4,25 @@ function handleMessage(message) {
+ }
+ 
+ class Comms {
+-    constructor(host, port) {
++    constructor(host, port, maxRetries = -1) {
+         this.host = host;
+         this.port = port;
++        this.maxRetries = maxRetries;
++        this.retry = 0;
+         this.createWebsocket();
+     }
+ 
+     createWebsocket() {
+         this.socket = new WebSocket(`ws://${this.host}:${this.port}`);
+         this.ready = false;
++        this.retry++;
+ 
+         this.socket.onopen = (event) => {
+             console.log("WebSocket connection established");
+             this.ready = true;
++            this.retry = 0;
++            const warning = document.getElementById("connection-warning");
++            if (warning) warning.remove();
+             this.register();
+         };
+ 
+@@ -31,11 +37,25 @@ class Comms {
+ 
+         this.socket.onclose = (event) => {
+             console.log("WebSocket connection closed");
+-            // TODO: maybe some way of notifying the GUI that the connection is dead
+-            console.log("Attempting to reconnect in 1s");
+-            setTimeout(() => {
+-                this.createWebsocket();
+-            }, 1000);
++            this.ready = false;
++            if (!document.getElementById("connection-warning")) {
++                const warning = document.createElement("div");
++                warning.id = "connection-warning";
++                warning.textContent = `=== Connection closed ===`;
++                warning.style.cssText =
++                    "position:fixed;bottom:0;left:0;width:100%;text-align:center;padding:10px;color:#c00;font-weight:bold;font-family:monospace;z-index:10000;";
++                document.body.appendChild(warning);
++            }
++            console.log(`Attempt #${this.retry} to reconnect in 1s`);
++            if (this.retry < this.maxRetries) {
++                document.getElementById("connection-warning").textContent = `=== Connection closed, trying ${this.maxRetries - this.retry} times to reconnect ... ===`;
++                setTimeout(() => {
++                    this.createWebsocket();
++                }, 1000);
++            } else {
++                console.log(`Max reconnection attempts reached, giving up.`);
++                document.getElementById("connection-warning").textContent = `=== Connection closed, manually refresh browser to reconnect ===`;
++            }
+         };
+     }
+ 
+-- 
+2.52.0
+
+
+From 675c7b038deee76e1342c861d1367d5021a68bab Mon Sep 17 00:00:00 2001
+From: Jasper Chan <jasperchan515@gmail.com>
+Date: Thu, 19 Mar 2026 14:32:03 -0700
+Subject: [PATCH 5/6] feature: limit number of reconnection attempts by default
+
+---
+ ocp_vscode/__main__.py   | 6 ++++++
+ ocp_vscode/standalone.py | 9 ++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/ocp_vscode/__main__.py b/ocp_vscode/__main__.py
+index 43f7d2d..79d04dd 100644
+--- a/ocp_vscode/__main__.py
++++ b/ocp_vscode/__main__.py
+@@ -311,6 +311,12 @@ def track_param(ctx, param, value):
+     help="Roughness property of material (default: 0.65)",
+     callback=track_param,
+ )
++@click.option(
++    "--max_reconnect_attempts",
++    default=-1,
++    help="Maximum number of attempts to reconnect to the viewer server in standalone mode (default: -1)",
++    callback=track_param,
++)
+ @click.pass_context
+ def main(ctx, **kwargs):
+     """
+diff --git a/ocp_vscode/standalone.py b/ocp_vscode/standalone.py
+index 8a4e759..efb7b57 100644
+--- a/ocp_vscode/standalone.py
++++ b/ocp_vscode/standalone.py
+@@ -105,9 +105,11 @@ def cleanup():
+ atexit.register(cleanup)
+ 
+ 
+-def COMMS(host, port):
++def COMMS(host, port, max_retries=None):
++    if max_retries is None:
++        max_retries = ""
+     return f"""
+-        const comms = new Comms("{host}", {port});
++        const comms = new Comms("{host}", {port}, {max_retries});
+         const vscode = {{postMessage: (msg) => {{
+                 comms.sendStatus(msg);
+             }}
+@@ -249,6 +251,7 @@ class Viewer:
+         self.params = params
+         self.host = params.get("host", "127.0.0.1")
+         self.port = params.get("port", 3939)
++        self.max_reconnect_attempts = params.get("max_reconnect_attempts", None)
+ 
+         self.last_changes = {}
+         self.last_config = {}
+@@ -384,7 +387,7 @@ class Viewer:
+             "viewer.html",
+             standalone_scripts=SCRIPTS,
+             standalone_imports=STATIC,
+-            standalone_comms=COMMS(address, port),
++            standalone_comms=COMMS(address, port, max_retries=self.max_reconnect_attempts),
+             standalone_init=INIT,
+             styleSrc=CSS,
+             scriptSrc=JS,
+-- 
+2.52.0
+
+
+From 24970cf2366e0a3a57774cd447a15aa6d3087837 Mon Sep 17 00:00:00 2001
+From: Jasper Chan <jasperchan515@gmail.com>
+Date: Thu, 19 Mar 2026 14:40:38 -0700
+Subject: [PATCH 6/6] feature: use negative max_reconnect_attempts values to
+ indicate infinite retries
+
+---
+ ocp_vscode/__main__.py        |  2 +-
+ ocp_vscode/static/js/comms.js | 17 ++++++++++++-----
+ 2 files changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/ocp_vscode/__main__.py b/ocp_vscode/__main__.py
+index 79d04dd..82fb3ba 100644
+--- a/ocp_vscode/__main__.py
++++ b/ocp_vscode/__main__.py
+@@ -314,7 +314,7 @@ def track_param(ctx, param, value):
+ @click.option(
+     "--max_reconnect_attempts",
+     default=-1,
+-    help="Maximum number of attempts to reconnect to the viewer server in standalone mode (default: -1)",
++    help="Maximum number of attempts to reconnect to the viewer server in standalone mode. Use -1 for infinite attempts (default: -1)",
+     callback=track_param,
+ )
+ @click.pass_context
+diff --git a/ocp_vscode/static/js/comms.js b/ocp_vscode/static/js/comms.js
+index c2e76db..4f5d9a9 100644
+--- a/ocp_vscode/static/js/comms.js
++++ b/ocp_vscode/static/js/comms.js
+@@ -47,14 +47,21 @@ class Comms {
+                 document.body.appendChild(warning);
+             }
+             console.log(`Attempt #${this.retry} to reconnect in 1s`);
+-            if (this.retry < this.maxRetries) {
+-                document.getElementById("connection-warning").textContent = `=== Connection closed, trying ${this.maxRetries - this.retry} times to reconnect ... ===`;
++            if (this.maxRetries >= 0) {
++                if (this.retry < this.maxRetries) {
++                    document.getElementById("connection-warning").textContent = `=== Connection closed, trying ${this.maxRetries - this.retry} times to reconnect ... ===`;
++                    setTimeout(() => {
++                        this.createWebsocket();
++                    }, 1000);
++                } else {
++                    console.log(`Max reconnection attempts reached, giving up.`);
++                    document.getElementById("connection-warning").textContent = `=== Connection closed, manually refresh browser to reconnect ===`;
++                }
++            } else {
++                document.getElementById("connection-warning").textContent = `=== Connection closed, trying to reconnect ... ===`;
+                 setTimeout(() => {
+                     this.createWebsocket();
+                 }, 1000);
+-            } else {
+-                console.log(`Max reconnection attempts reached, giving up.`);
+-                document.getElementById("connection-warning").textContent = `=== Connection closed, manually refresh browser to reconnect ===`;
+             }
+         };
+     }
+-- 
+2.52.0
+
