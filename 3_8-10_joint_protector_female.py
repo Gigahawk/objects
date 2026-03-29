@@ -7,7 +7,7 @@ from vitamins.cue_joint_protector_female import build, get_section_dia, Dome, AL
 
 
 outer_dia = 20.8
-total_length = 54
+total_length = 30
 
 thread_maj_dia = (3 / 8) * 25.4
 

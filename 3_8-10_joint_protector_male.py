@@ -6,7 +6,7 @@ from bd_warehouse.thread import IsoThread
 from vitamins.cue_joint_protector_male import build
 
 outer_dia = 20.8
-total_length = 38
+total_length = 34
 
 thread_maj_dia = (3 / 8) * 25.4
 
