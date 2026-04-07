@@ -29,7 +29,7 @@ _lead_in_dia = 6.45
 lead_in_dia_tol = 0.2
 lead_in_chamfer_depth = 4
 
-brick_layers_comp = 0.6
+brick_layers_comp = 0.2
 
 shoulder_dia = _shoulder_dia + shoulder_tol
 shoulder_length = _shoulder_length + shoulder_tol
