@@ -2,8 +2,7 @@
   description = "A very basic flake";
 
   inputs = {
-    # Latest nixos-unstable seems to break building vtk 9.3.1
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-26.05";
 
     flake-utils.url = "github:numtide/flake-utils";
 
@@ -46,48 +45,20 @@
       system:
       let
         inherit (nixpkgs) lib;
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+        };
         python = pkgs.python312;
 
-        # cadquery-ocp needs vtk 9.3
+        # cadquery-ocp needs vtk 9.6.2
         vtkDeriv = import "${pkgs.path}/pkgs/development/libraries/vtk/generic.nix" {
-          #version = "9.3.1";
-          majorVersion = "9.3";
-          minorVersion = "1";
-          sourceSha256 = "sha256-g1TsCE6g0tw9I9vkJDgjxL/CcDgtDOjWWJOf1QBhyrg=";
+          version = "9.6.2";
+          sourceSha256 = "sha256-rtEs7BKpYJF5v2YykHAmZifKZCRKEIVqRSsqF/+wSh0=";
         };
-        vtk =
-          (pkgs.callPackage vtkDeriv {
-            enablePython = true;
-            inherit python;
-            #pythonSupport = true;
-
-            # Other stuff that callPackage doesn't fill in for some reason?
-            qtdeclarative = pkgs.qt5.qtdeclarative;
-            qttools = pkgs.qt5.qttools;
-            qtx11extras = pkgs.qt5.qtx11extras;
-            qtEnv = pkgs.qt5.qtEnv;
-          }).overrideAttrs
-            (old: {
-              # cadquery-ocp wheel looks for versioned .so file names
-              # TODO: figure out why this doesn't work
-              #cmakeFlags = (builtins.filter (f: !(builtins.match "^-DVTK_VERSIONED_INSTALL=.*" f)) old.cmakeFlags) ++ [
-              #  "-DVTK_VERSIONED_INSTALL=ON"
-              #];
-              cmakeFlags = old.cmakeFlags ++ [
-                "-DVTK_VERSIONED_INSTALL=ON"
-              ];
-            });
-        #vtk = pkgs.vtk-full.overrideAttrs (old: {
-        #  # cadquery-ocp wheel looks for versioned .so file names
-        #  # TODO: figure out why this doesn't work
-        #  #cmakeFlags = (builtins.filter (f: !(builtins.match "^-DVTK_VERSIONED_INSTALL=.*" f)) old.cmakeFlags) ++ [
-        #  #  "-DVTK_VERSIONED_INSTALL=ON"
-        #  #];
-        #  cmakeFlags = old.cmakeFlags ++ [
-        #    "-DVTK_VERSIONED_INSTALL=ON"
-        #  ];
-        #});
+        vtk = pkgs.callPackage vtkDeriv {
+          pythonSupport = true;
+          python3Packages = python.pkgs;
+        };
 
         workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
         overlay = workspace.mkPyprojectOverlay {
@@ -106,6 +77,10 @@
               main_init=$out/${python.sitePackages}/OCP/__init__.py
               echo 'import vtk'$'\n'"$(cat $main_init)" > $main_init
             '';
+          });
+
+          numba = prev.numba.overrideAttrs (old: {
+            buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.onetbb ];
           });
 
           # Casadi needs a bunch of libs like libknitro.so and I have no idea where
@@ -167,7 +142,11 @@
         };
         devShells.default =
           let
-            virtualenv = pythonSet.mkVirtualEnv "objects-devenv" workspace.deps.all;
+            virtualenv = (pythonSet.mkVirtualEnv "objects-devenv" workspace.deps.all).overrideAttrs (_old: {
+              venvIgnoreCollisions = [
+                "lib/python${python.pythonVersion}/site-packages/OCP/*"
+              ];
+            });
           in
           pkgs.mkShell {
             packages = [
