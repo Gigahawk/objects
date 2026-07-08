@@ -411,7 +411,8 @@ with BuildPart() as base_mid:
         for idx in range(weight_insert_layers):
             weight_insert_layer_locs.append(
                 # Assuming thickness tolerance doesn't stack
-                weight_insert_start + idx * Vector(0, 0, weight_insert.thickness)
+                weight_insert_start
+                + idx * Vector(0, 0, weight_insert.thickness)
             )
         _cutout_cyl = Cylinder(
             radius=weight_insert_dia / 2,
