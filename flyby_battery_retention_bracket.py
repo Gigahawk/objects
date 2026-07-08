@@ -16,7 +16,6 @@ hole_distance = 59.5 + hole_dia
 
 
 with BuildPart() as bracket:
-
     with BuildSketch() as profile_sketch:
         with BuildLine(mode=Mode.PRIVATE):
             l1 = Line((-length / 2, 0), (-length / 2 + tab_length, 0))
@@ -39,7 +38,7 @@ with BuildPart() as bracket:
     with BuildSketch(Plane.XZ) as chamfer_sketch:
         Rectangle(length, width)
         chamfer(chamfer_sketch.vertices(), length=corner_chamfer)
-    extrude(until=Until.LAST, mode=Mode.INTERSECT)
+    extrude(amount=drop_distance + thickness, mode=Mode.INTERSECT)
 
 result = bracket.part
 
