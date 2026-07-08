@@ -1,5 +1,7 @@
 """Simple assembly example"""
 
+import copy
+
 from build123d import *
 
 
@@ -48,9 +50,21 @@ with BuildPart() as housing:
     )
 
 housing.joints["housing_inner"].connect_to(pcb.joints["pcb_top"])
-asm = Compound(children=[pcb.part, housing.part])
+asm = Compound(children=[copy.copy(pcb.part), copy.copy(housing.part)])
 
-results = {"pcb": pcb.part, "housing": housing.part, "asm": asm}
+results = {
+    "pcb": pcb.part,
+    "housing": housing.part,
+    # "asm": asm,
+}
 
-if "show_object" in locals():
-    show_object(asm)
+if __name__ == "__main__":
+    try:
+        from ocp_vscode import *
+
+        show_all(
+            reset_camera=Camera.KEEP,
+            render_joints=True,
+        )
+    except ImportError:
+        pass
