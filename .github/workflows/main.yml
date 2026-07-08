@@ -12,9 +12,9 @@ jobs:
         with:
           submodules: true
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@v26
+        uses: nixbuild/nix-quick-install-action@v35
       - name: Restore and cache Nix store
-        uses: nix-community/cache-nix-action@v6
+        uses: nix-community/cache-nix-action@v7
         with:
           primary-key: cache-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
           restore-prefixes-first-match: cache-${{ runner.os }}-nix-store-
@@ -62,9 +62,9 @@ jobs:
         run: |
           echo "NAME=${BUILD_DATE}_${BUILD_BRANCH}_${BUILD_COMMIT}_object_${MODULE}_bin" >> "$GITHUB_ENV"
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@v26
+        uses: nixbuild/nix-quick-install-action@v35
       - name: Restore and cache Nix store
-        uses: nix-community/cache-nix-action@v6
+        uses: nix-community/cache-nix-action@v7
         with:
           primary-key: cache-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
           restore-prefixes-first-match: cache-${{ runner.os }}-nix-store-
@@ -96,9 +96,9 @@ jobs:
           path: .out
       - run: tree
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@v26
+        uses: nixbuild/nix-quick-install-action@v35
       - name: Restore and cache Nix store
-        uses: nix-community/cache-nix-action@v6
+        uses: nix-community/cache-nix-action@v7
         with:
           primary-key: cache-mako-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
           restore-prefixes-first-match: cache-mako-${{ runner.os }}-nix-store-

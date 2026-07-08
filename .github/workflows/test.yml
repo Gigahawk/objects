@@ -10,9 +10,9 @@ jobs:
         with:
           submodules: true
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@v26
+        uses: nixbuild/nix-quick-install-action@v35
       - name: Restore and cache Nix store
-        uses: nix-community/cache-nix-action@v6
+        uses: nix-community/cache-nix-action@v7
         with:
           primary-key: cache-test-${{ runner.os }}-nix-store-${{ hashFiles('**/*.nix') }}
           restore-prefixes-first-match: cache-test-${{ runner.os }}-nix-store-

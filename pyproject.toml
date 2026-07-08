@@ -6,8 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bd-warehouse>=0.1.1",
-    "build123d>=0.10.0",
-    "cadquery",
+    "build123d>=0.11.0",
+    "cadquery>=2.8.0",
     "click>=8.2.1",
     "ipython-b3d",
     "ocp-vscode>=3.1.2",
@@ -17,6 +17,10 @@ dependencies = [
 [tool.setuptools]
 py-modules = []
 
+[tool.uv]
+exclude-dependencies = [
+    "cadquery-ocp-novtk"
+]
+
 [tool.uv.sources]
-cadquery = { git = "https://github.com/CadQuery/cadquery" }
 ipython-b3d = { git = "https://github.com/Gigahawk/ipython-b3d" }

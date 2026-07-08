@@ -288,11 +288,11 @@ with BuildPart() as base_mid:
         _usb_conn_hole_rect = add(usb_conn_hole_sketch.sketch, mode=Mode.PRIVATE)
         _usb_breakout_rect = add(usb_breakout_sketch.sketch, mode=Mode.PRIVATE)
         with Locations(usb_breakout_zero):
-            with Locations((0, -usb_breakout.pcb_width)):
+            with Locations((pcb_xy_tol, -(usb_breakout.pcb_width + pcb_xy_tol))):
                 _pin_clearance_rect = Rectangle(
                     # HACK: idk this probably shouldn't be hardcoded
-                    4,
-                    usb_wiring_edge.length * 0.4,
+                    4 + pcb_xy_tol,
+                    usb_wiring_edge.length * 0.4 + pcb_xy_tol,
                     align=(Align.MAX, Align.MIN),
                     mode=Mode.PRIVATE,
                 )

@@ -1,4 +1,9 @@
-"""PCIe bracket mount for a 128x32 SSD1306 display module"""
+"""PCIe bracket mount for a 128x32 SSD1306 display module
+
+WARNING: MAJOR REWORK AS PART OF b3d 0.11.0 UPDATE.
+MAY NO LONGER WORK
+
+"""
 
 import logging
 from build123d import *
@@ -55,15 +60,18 @@ with BuildPart() as mount:
         .sort_by(Axis.Y)
         .sort_by_distance((main_length / 2, -thickness, full_height / 2))
     )[0]
-    with BuildSketch(mount_face) as mount_sketch:
-        with Locations((0, mount_face.center().Z)):
-            Rectangle(guide_outer_width, main_height, align=(Align.CENTER, Align.MAX))
+    with BuildSketch(Plane.XZ.offset(-mount_face.center().Y)) as mount_sketch:
+        with Locations((mount_face.center().X, 0)):
+            Rectangle(guide_outer_width, main_height, align=(Align.CENTER, Align.MIN))
             with Locations((guide_outer_width / 2, 0)):
                 Rectangle(
-                    tab_extra_support_width, main_height, align=(Align.MIN, Align.MAX)
+                    tab_extra_support_width, main_height, align=(Align.MIN, Align.MIN)
                 )
         with Locations(
-            (0, mount_face.center().Z - main_height / 2 + pcb_vertical_offset)
+            (
+                mount_face.center().X,
+                main_height / 2 + pcb_vertical_offset,
+            )
         ):
             Rectangle(_pcb_width, _pcb_height, mode=Mode.SUBTRACT)
     extrude(amount=guide_thickness)
@@ -102,24 +110,23 @@ with BuildPart() as mount:
         )
     )[0]
 
-    chamfer(guide_edge, guide_thickness - 0.0001)
     chamfer(tab_support_edge, guide_thickness + tab_gap + tab_thickness - 0.0001)
 
-    with BuildSketch(mount_face) as cutout_sketch:
+    with BuildSketch(Plane.XZ.offset(-mount_face.center().Y)) as cutout_sketch:
         with Locations(
             (
-                cutout_horizontal_offset,
-                mount_face.center().Z - main_height / 2 - _cutout_vertical_offset,
+                mount_face.center().X + cutout_horizontal_offset,
+                main_height / 2 + _cutout_vertical_offset,
             )
         ):
             Rectangle(cutout_width, cutout_height)
         chamfer(cutout_sketch.vertices(), 0.8)
     extrude(amount=-thickness, mode=Mode.SUBTRACT, taper=-cutout_taper)
-    with BuildSketch(mount_face) as cutout_support_sketch:
+    with BuildSketch(Plane.XZ.offset(-mount_face.center().Y)) as cutout_support_sketch:
         with Locations(
             (
-                cutout_horizontal_offset,
-                mount_face.center().Z - main_height / 2 - _cutout_vertical_offset,
+                mount_face.center().X + cutout_horizontal_offset,
+                main_height / 2 + _cutout_vertical_offset,
             )
         ):
             Rectangle(
@@ -127,10 +134,10 @@ with BuildPart() as mount:
                 cutout_height - support_gap * 2,
             )
     extrude(amount=-thickness, taper=-cutout_taper)
-    with BuildSketch(mount_face.offset(support_gap)) as guide_support_sketch:
-        with Locations(
-            (0, mount_face.center().Z - main_height / 2 + pcb_vertical_offset)
-        ):
+    with BuildSketch(
+        Plane.XZ.offset(-mount_face.center().Y + support_gap)
+    ) as guide_support_sketch:
+        with Locations((mount_face.center().X, main_height / 2 + pcb_vertical_offset)):
             Rectangle(
                 _pcb_width - 2 * window_support_gap, _pcb_height - 2 * support_gap
             )
@@ -149,21 +156,22 @@ with BuildPart() as mount:
         length=guide_thickness - support_gap - tab_gap - 0.0001,
         length2=guide_support_chamfer_depth,
     )
+    chamfer(guide_edge, guide_thickness - 0.0001)
     with BuildSketch(
         guide_right_face.offset(-guide_thickness - clip_offset)
     ) as clip_sketch:
-        with Locations((0, -guide_thickness / 2)):
-            Rectangle(main_height, clip_thickness, align=(Align.CENTER, Align.MAX))
+        with Locations((0, guide_thickness / 2)):
+            Rectangle(main_height, clip_thickness, align=(Align.CENTER, Align.MIN))
         # BuildLine doesn't inherit Locations
         with BuildLine() as path:
             PolarLine(
-                (_pcb_height / 2 - clip_overhang, -guide_thickness / 2),
-                angle=-90 + clip_chamfer_angle,
+                (_pcb_height / 2 - clip_overhang, guide_thickness / 2),
+                angle=90 + clip_chamfer_angle,
                 length=clip_thickness * 3,
             )
         with BuildLine() as profile:
             PolarLine(
-                (_pcb_height / 2 - clip_overhang, -guide_thickness / 2),
+                (_pcb_height / 2 - clip_overhang, guide_thickness / 2),
                 angle=180,
                 length=support_gap,
             )
