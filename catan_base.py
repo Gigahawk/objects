@@ -46,9 +46,9 @@ with BuildPart() as base:
     extrude(amount=taper_height, taper=taper_angle)
 
     # Inner lip the art rests on
-    with BuildSketch(Location((0, 0, lip_height))):
+    with BuildSketch(Location((0, 0, lip_height))) as inner_lip:
         RegularPolygon(radius=lip_flat_dist / 2, side_count=6, major_radius=False)
-    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
+    extrude(amount=base_height + taper_height, mode=Mode.SUBTRACT)
 
     # Inner cutout for weight reduction/magnet access
     with BuildSketch():
@@ -125,9 +125,9 @@ with BuildPart() as plug:
     extrude(until=Until.LAST, mode=Mode.SUBTRACT)
 
     # Inner cutout for weight reduction/magnet access
-    with BuildSketch():
+    with BuildSketch() as magnet_access_sketch:
         RegularPolygon(radius=inner_flat_dist / 2, side_count=6, major_radius=False)
-    extrude(until=Until.LAST, mode=Mode.SUBTRACT)
+    extrude(amount=base_height + taper_height, mode=Mode.SUBTRACT)
 
 
 results = {
@@ -142,6 +142,6 @@ if __name__ == "__main__":
     try:
         from ocp_vscode import *
 
-        show_all(measure_tools=True)
+        show_all()
     except ImportError:
         pass
