@@ -115,12 +115,13 @@ def build(finger_indents: bool = True):
             .sort_by(SortBy.RADIUS)[:2]
             .sort_by(Axis.Z)[0]
         )
-        # chamfer_len1 = _upper.part.max_fillet([inner_edge], max_iterations=100)
+        # chamfer_len1 = _upper_base.part.max_fillet([inner_edge], max_iterations=100)
         chamfer_len1 = 0.8185003700884692
+
         chamfer(
             objects=inner_edge,
-            length=upper_inner_chamfer_length,
-            length2=chamfer_len1,
+            length=chamfer_len1,
+            length2=upper_inner_chamfer_length,
         )
         top_face = _upper_base.faces().sort_by(Axis.Z, reverse=True)[0]
         with BuildSketch(top_face):
